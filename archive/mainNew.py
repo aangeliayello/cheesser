@@ -1,16 +1,15 @@
 import numpy as np
 from enum import IntEnum
+
 # TODO:
 #     Game:
-#     - Implement promotions
-#     - Implement En pasant
+#     - Implement En pasant in move generation
+#     - Implement Casling in move generation
 #     - Implement check for check
 #
 #     Speed:
-#     Speed:
 #     - Pre calculate tables
-#     - Implement En pasant
-#     - Implement check for check
+#     - LSB, MSB calculations
 
 m1  = np.uint64(0x5555555555555555)
 m2  = np.uint64(0x3333333333333333)
@@ -207,7 +206,7 @@ class Board(object):
         self.all_pieces = np.uint64(0)  
         self.color_to_play = Color.WHITE  
         self.en_passant_sqr = None
-        self.castling_available =  
+        self.castling_available = np.ones((2, 2), dtype=bool)
         
     def __str__(self):
         board = np.empty(64, dtype=str)
@@ -280,7 +279,7 @@ class Board(object):
         board.all_pieces_per_color = np.copy(self.all_pieces_per_color)
         board.all_pieces = np.copy(self.all_pieces)
         board.color_to_play = self.color_to_play
-
+        
         bb_not_from = ~ Square(m.from_).toBoard()
         bb_to = Square(m.to).toBoard()
 
@@ -306,6 +305,45 @@ class Board(object):
                 board.pieces[opposite_color][piece] = board.pieces[opposite_color][piece] & ~bb_to
             board.all_pieces_per_color[opposite_color] = board.all_pieces_per_color[opposite_color] & ~bb_to
 
+        if m.piece == Piece.KING:
+            board.castling_available[board.color_to_play][:] = False
+            
+        if  (m.piece == Piece.ROOK):
+            if board.castling_available[board.color_to_play][CastleSide.QueenSide]:
+                board.castling_available[board.color_to_play][CastleSide.QueenSide] = m.from_ != 56*board.color_to_play
+            elif board.castling_available[board.color_to_play][CastleSide.KingSide]:
+                board.castling_available[board.color_to_play][CastleSide.KingSide] = m.from_ != 7+56*board.color_to_play
+            
+        # En Passant Capture
+        if m.en_passant:
+            if board.color_to_play == Color.WHITE:
+                capture_sqr = bb_to >> np.uint(8) # down from the 'to' sqr
+            else:
+                capture_sqr = bb_to << np.uint(8) # up from the 'to' sqr
+            board.pieces[opposite_color][Piece.PAWN] = board.pieces[opposite_color][Piece.PAWN] & ~capture_sqr
+            board.all_pieces_per_color[opposite_color] = board.all_pieces_per_color[opposite_color] & ~capture_sqr
+            
+        # Promotion of Pawn
+        if m.promotion:
+            # clear pawn 
+            board.pieces[board.color_to_play][Piece.PAWN] = board.pieces[board.color_to_play][Piece.PAWN] & ~bb_to  
+            # add promotion piece          
+            board.pieces[board.color_to_play][m.promotion] = board.pieces[board.color_to_play][m.promotion] | bb_to
+
+        if m.castleSide: # No need to take care of the King, since already the from_-to move it 
+            if board.color_to_play == Color.WHITE:
+                rook_from = Square(0 if m.casleSide == CastleSide.QueenSide else 7)
+                rook_to   = Square(3 if m.casleSide == CastleSide.QueenSide else 5)
+                
+            else: 
+                rook_from = Square(56 if m.casleSide == CastleSide.QueenSide else 63)
+                rook_to   = Square(59 if m.casleSide == CastleSide.QueenSide else 61)
+                
+            # Clear rook initial possition (m.to)
+            board.pieces[board.color_to_play][Piece.ROOK] = board.pieces[board.color_to_play][Piece.ROOK] & ~ Square(rook_from).toBoard() 
+            # Add rook in King initial possit
+            board.pieces[board.color_to_play][Piece.ROOK] = board.pieces[board.color_to_play][Piece.ROOK] | Square(rook_to).toBoard()
+        
         board.color_to_play = opposite_color
 
         return board
@@ -443,6 +481,16 @@ def get_bishop_move(bb, occupancy, same_color_occupancy):
 def get_queen_move(bb, occupancy, same_color_occupancy):
     return (get_bishop_move(bb, occupancy, same_color_occupancy) | get_rook_moves(bb, occupancy, same_color_occupancy))
 
+def get_pawn_attack_en_passant_white(bb, opposite_color_occunpancy):
+    # p_pp
+    # ____
+    # _pP_
+    
+    #TODO
+    
+    return None
+
+
 def get_pawn_attacks_white(bb, opposite_color_occunpancy):
     # _A_B_
     # __X__
@@ -474,6 +522,7 @@ def get_pawn_moves_black(bb, occupancy):
 
 def get_legal_moves_from(piece, board, from_):
     sq = Square(from_)
+    promotion_possible = False
     if piece == Piece.PAWN:
         # TODO: Add en pasant
         if board.color_to_play == Color.WHITE:
@@ -482,6 +531,7 @@ def get_legal_moves_from(piece, board, from_):
             moves = movesSimple | movesAttack
         else:
             moves = get_pawn_moves_black(sq.toBoard(), board.all_pieces) | get_pawn_attacks_white(sq.toBoard(), board.all_pieces_per_color[Color.WHITE])
+        promotion_possible = bool(moves & Rank[7*(1-board.color_to_play)])
     elif piece == Piece.ROOK:
         moves = get_rook_moves(sq.toBoard(), board.all_pieces, board.all_pieces_per_color[board.color_to_play])
     elif piece == Piece.BISHOP:
@@ -498,11 +548,18 @@ def get_legal_moves_from(piece, board, from_):
     list_of_moves = []
     while moves:
         right_bit_index = get_right_bit_index(moves, start)
+        rbi_bb = Square(right_bit_index).toBoard()
         start = right_bit_index + 1
-
-        list_of_moves.append(Move(from_, right_bit_index, piece))
-
-        moves = moves & ~Square(right_bit_index).toBoard()
+        
+        if promotion_possible and bool(rbi_bb & Rank[7*(1-board.color_to_play)]):
+            list_of_moves.append(Move(from_, right_bit_index, piece, promotion=Piece.QUEEN))
+            list_of_moves.append(Move(from_, right_bit_index, piece, promotion=Piece.KNIGHT))
+            list_of_moves.append(Move(from_, right_bit_index, piece, promotion=Piece.ROOK))
+            list_of_moves.append(Move(from_, right_bit_index, piece, promotion=Piece.BISHOP))
+            
+        else:
+            list_of_moves.append(Move(from_, right_bit_index, piece))
+        moves = moves & ~rbi_bb
 
     return list_of_moves
 
