@@ -9,11 +9,25 @@ def main():
     b0.base_board()
     print(b0)
     while True:
+
+        print('*************** Cheeser AB ******************')
+        ss1 = time.time()
+        moveAB = get_best_moveAB(b0, 3, False, "-")
+        ee1 = time.time()
+        print(b0.color_to_play, moveAB, '  -  Took: ', round(ee1-ss1), 's')
+        print(b0.move(moveAB))
+        b0 = b0.move(moveAB)
+
         if humanPlaying:
             print('*************** Human ******************')
             print('To play: ', b0.color_to_play.name)
             while True:
-                piece, from_, to, promotion, en_passant, castleSide = input("Enter from_, to, promotion, en_passant, castleSide\n").split(",")
+                while True:
+                    try:
+                        piece, from_, to, promotion, en_passant, castleSide = input("Enter from_, to, promotion, en_passant, castleSide\n").split(",")
+                        break
+                    except:
+                        pass
                 from_ = int(from_.replace(" ",""))
                 to = int(to.replace(" ",""))
                 piece = Piece[piece.replace(" ","").upper()]
@@ -34,21 +48,6 @@ def main():
                 else:
                     print("Let's try again!")
 
-        print('*************** Cheeser AB ******************')
-        ss1 = time.time()
-        moveAB = get_best_moveAB(b0, 3, False, "-")
-        ee1 = time.time()
-        print(b0.color_to_play, moveAB, '  -  Took: ', round(ee1-ss1), 's')
-        print(b0.move(moveAB))
-        b0 = b0.move(moveAB)
-
-        # print('*************** Cheeser AB ******************')
-        # ss1 = time.time()
-        # moveBF = get_best_move(b0, 3, False, "-")
-        # ee1 = time.time()
-        # print(b0.color_to_play, moveBF)
-        # print(b0.move(moveBF))
-        # print(ee1 - ss1, moveBF)
 
 if __name__ == "__main__":
     main()

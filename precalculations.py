@@ -2,6 +2,24 @@ import numpy
 
 from utils import *
 
+A_file = np.uint64(0b0000000100000001000000010000000100000001000000010000000100000001)
+Files = np.array([A_file << np.uint64(i) for i in range(8)], dtype=np.uint64)
+
+First_rank = np.uint64(0b0000000000000000000000000000000000000000000000000000000011111111)
+Ranks = np.array([First_rank << np.uint64(i*8) for i in range(8)], dtype=np.uint64)
+
+file_mask = []
+rank_mask = []
+for i in range(64):
+    sq_bb = Square(i).toBoard()
+    file = i%8
+    rank = i//8
+    file_mask.append((sq_bb, Files[file]))
+    rank_mask.append((sq_bb, Ranks[rank]))
+
+FILE_MASK = dict(file_mask)
+RANK_MASK = dict(rank_mask)
+
 def get_kingLike_moves(bb):
     w = (bb >> np.uint64(1)) & ~Files[File.H]
     e = (bb << np.uint64(1)) & ~A_file
@@ -119,15 +137,36 @@ def get_left_diagonal_moves(bb, occupancy):
 KING_MOVES = dict([ (Square(i).toBoard(),get_kingLike_moves(Square(i).toBoard())) for i in range(64)])
 KNIGHT_MOVES = dict([ (Square(i).toBoard(),get_knightLike_moves(Square(i).toBoard())) for i in range(64)])
 
-# RANK_MOVES
-#
-# rank_moves = np.empty((64*256*8, 2))
-# index = 0
-# for square in range(64):
-#     sq_bb = Square(square).toBoard()
-#     for occupancy in range(256):
-#         occupancy_bb = np.uint64(occupancy)
-#         for shift in range(8):
-#             shifted_occupancy = None
-#             key = (sq_bb, shifted_occupancy)
-#             get_rank_moves(Square(i).toBoard(), np.uint64(occupancy))) for i in range(64) for occupancy in range(256)] for shift in range())
+rank_moves = []
+for square in range(8):
+    sq_bb = Square(square).toBoard()
+    for occupancy in range(256):
+        occupancy_bb = np.uint64(occupancy)
+        for shift in range(8):
+            shifted_sqr_bb = sq_bb << np.uint64(8*shift)
+            shifted_occupancy = occupancy_bb << np.uint64(8*shift)
+            key = (shifted_sqr_bb, shifted_occupancy)
+            rank_moves.append([key,get_rank_moves(shifted_sqr_bb, shifted_occupancy)])
+
+RANK_MOVES = dict(rank_moves)
+
+file_moves = []
+for occupancy in range(256):
+
+    occupancy_bb = np.uint64(occupancy)
+    rotated_occupancy_bb = np.uint64(0)
+
+    # rotate first rank to the A-File
+    for i in range(8):
+        # pick the ith bit and move it diagonally i times
+        rotated_occupancy_bb |= (occupancy_bb & (np.uint64(1) << np.uint64(i)))  << np.uint64(7*i)
+    for square in range(8):
+        sq_bb = Square(square*8).toBoard()
+        for shift in range(8):
+            shifted_sqr_bb = sq_bb << np.uint64(shift)
+            shifted_occupancy = rotated_occupancy_bb << np.uint64(shift)
+            key = (shifted_sqr_bb, shifted_occupancy)
+            file_moves.append([key, get_file_moves(shifted_sqr_bb, shifted_occupancy)])
+
+FILE_MOVES = dict(file_moves)
+

@@ -1,7 +1,7 @@
 import numpy as np
 from utils import *
 from evaluation import evaluate_board
-from precalculations import KING_MOVES, KNIGHT_MOVES
+from precalculations import KING_MOVES, KNIGHT_MOVES, FILE_MOVES, RANK_MOVES, Files, Ranks, FILE_MASK, RANK_MASK
 
 class Move(object):
     def __init__(self, piece, from_, to, promotion=None, en_passant=False, castleSide=None):
@@ -15,52 +15,19 @@ class Move(object):
     def __str__(self):
         return self.piece.name + ": " + "(" + str(self.from_) + ", " + str(self.to) + ")"
 
-
-def get_kingLike_moves(bb):
+def get_king_moves(bb):
     return KING_MOVES[bb]
 
-def get_knightLike_moves(bb):
+def get_knight_moves(bb):
     return KNIGHT_MOVES[bb]
 
 def get_file_moves(bb, occupancy):
-    moves = np.uint64(0)
-    bb_up = bb
-    bb_down = bb
-
-    # up
-    for i in range(1, 8):
-        bb_up = bb_up << np.uint64(8)
-        if bb_up == 0: break
-        moves |= bb_up
-        if bb_up & occupancy: break
-
-    for i in range(1, 8):
-        bb_down = bb_down >> np.uint64(8)
-        if bb_down == 0: break
-        moves |= bb_down
-        if bb_down & occupancy: break
-
-    return moves
+    occupancy &= FILE_MASK[bb]
+    return FILE_MOVES[(bb, occupancy)]
 
 def get_rank_moves(bb, occupancy):
-    moves = np.uint64(0)
-    bb_right = bb
-    bb_left = bb
-
-    # right
-    for i in range(1, 8):
-        bb_right = (bb_right & ~Files[File.H]) << np.uint64(1)
-        if bb_right == 0: break
-        moves |= bb_right
-        if bb_right & occupancy: break
-
-    # left
-    for i in range(1, 8):
-        bb_left = (bb_left & ~Files[File.A]) >> np.uint64(1)
-        if bb_left == 0: break
-        moves |= bb_left
-        if bb_left & occupancy: break
-    return moves
+    occupancy &= RANK_MASK[bb]
+    return RANK_MOVES[(bb, occupancy)]
 
 def get_right_diagonal_moves(bb, occupancy):
     moves = np.uint64(0)
@@ -103,7 +70,7 @@ def get_left_diagonal_moves(bb, occupancy):
     return moves
 
 def get_rook_moves(bb, occupancy, same_color_occupancy):
-    return (get_file_moves(bb, occupancy) | get_rank_moves(bb, occupancy)) & ~ same_color_occupancy
+    return (get_file_moves(bb, occupancy) | get_rank_moves(bb, occupancy)) & ~same_color_occupancy
 
 def get_bishop_move(bb, occupancy, same_color_occupancy):
     return (get_right_diagonal_moves(bb, occupancy) | get_left_diagonal_moves(bb, occupancy)) & ~ same_color_occupancy
@@ -164,12 +131,12 @@ def get_legal_moves_from(piece, board, from_):
     elif piece == Piece.BISHOP:
         moves = get_bishop_move(sq.toBoard(), board.all_pieces, board.all_pieces_per_color[board.color_to_play])
     elif piece == Piece.KNIGHT:
-        moves = get_knightLike_moves(sq.toBoard()) & ~ board.all_pieces_per_color[board.color_to_play]
+        moves = get_knight_moves(sq.toBoard()) & ~ board.all_pieces_per_color[board.color_to_play]
     elif piece == Piece.QUEEN:
         moves = get_queen_move(sq.toBoard(), board.all_pieces, board.all_pieces_per_color[board.color_to_play])
     elif piece == Piece.KING:
         # TODO: Add castling
-        moves = get_kingLike_moves(sq.toBoard()) & ~ board.all_pieces_per_color[board.color_to_play]
+        moves = get_king_moves(sq.toBoard()) & ~ board.all_pieces_per_color[board.color_to_play]
 
     start = 0
     list_of_moves = []

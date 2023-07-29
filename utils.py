@@ -79,12 +79,6 @@ class Piece(IntEnum):
             c = c.upper()
         return c
 
-A_file = np.uint64(0b0000000100000001000000010000000100000001000000010000000100000001)
-Files = np.array([A_file << np.uint64(i) for i in range(8)], dtype=np.uint64)
-
-First_rank = np.uint64(0b0000000000000000000000000000000000000000000000000000000011111111)
-Ranks = np.array([First_rank << np.uint64(i*8) for i in range(8)], dtype=np.uint64)
-
 def coordinate_to_index(coordinate):
     file = ord(coordinate[0].upper()) - ord('A')
     rank = coordinate[0] - 1
