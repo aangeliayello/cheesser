@@ -1,8 +1,10 @@
 import numpy as np
 from utils import *
+from evaluation import evaluate_board
+from precalculations import KING_MOVES, KNIGHT_MOVES
 
 class Move(object):
-    def __init__(self, from_, to, piece, promotion = None, en_passant = False, castleSide = None):
+    def __init__(self, piece, from_, to, promotion=None, en_passant=False, castleSide=None):
         self.from_ = from_
         self.to = to
         self.piece = piece
@@ -15,38 +17,10 @@ class Move(object):
 
 
 def get_kingLike_moves(bb):
-    w = (bb >> np.uint64(1)) & ~Files[File.H]
-    e = (bb << np.uint64(1)) & ~A_file
-    s = bb >> np.uint64(8)
-    n = bb << np.uint64(8)
-
-    sw = (bb >> np.uint64(9)) & ~Files[File.H]
-    nw = (bb << np.uint64(7)) & ~Files[File.H]
-    se = (bb >> np.uint64(7)) & ~A_file
-    ne = (bb << np.uint64(9)) & ~A_file
-
-    return w | e | s | n | sw | nw | se | ne
+    return KING_MOVES[bb]
 
 def get_knightLike_moves(bb):
-    # _H_A_
-    # G___B
-    # __X__
-    # F___C
-    # _E_D_
-    file_A_B = (Files[File.A] | Files[File.B])
-    file_G_H = (Files[File.G] | Files[File.H])
-
-    a = (bb << np.uint64(17)) & ~Files[File.A]
-    b = (bb << np.uint64(10)) & ~file_A_B
-    c = (bb >> np.uint64(6)) & ~file_A_B
-    d = (bb >> np.uint64(15)) & ~Files[File.A]
-
-    e = (bb >> np.uint64(17)) & ~Files[File.H]
-    f = (bb >> np.uint64(10)) & ~file_G_H
-    g = (bb << np.uint64(6)) & ~file_G_H
-    h = (bb << np.uint64(15)) & ~Files[File.H]
-
-    return a | b | c | d | e | f | g | h
+    return KNIGHT_MOVES[bb]
 
 def get_file_moves(bb, occupancy):
     moves = np.uint64(0)
@@ -146,7 +120,6 @@ def get_pawn_attack_en_passant_white(bb, opposite_color_occunpancy):
     
     return None
 
-
 def get_pawn_attacks_white(bb, opposite_color_occunpancy):
     # _A_B_
     # __X__
@@ -182,12 +155,10 @@ def get_legal_moves_from(piece, board, from_):
     if piece == Piece.PAWN:
         # TODO: Add en pasant
         if board.color_to_play == Color.WHITE:
-            movesSimple = get_pawn_moves_white(sq.toBoard(), board.all_pieces)
-            movesAttack = get_pawn_attacks_white(sq.toBoard(), board.all_pieces_per_color[Color.BLACK])
-            moves = movesSimple | movesAttack
+            moves = get_pawn_moves_white(sq.toBoard(), board.all_pieces) | get_pawn_attacks_white(sq.toBoard(), board.all_pieces_per_color[Color.BLACK])
         else:
-            moves = get_pawn_moves_black(sq.toBoard(), board.all_pieces) | get_pawn_attacks_white(sq.toBoard(), board.all_pieces_per_color[Color.WHITE])
-        promotion_possible = bool(moves & Rank[7*(1-board.color_to_play)])
+            moves = get_pawn_moves_black(sq.toBoard(), board.all_pieces) | get_pawn_attacks_black(sq.toBoard(), board.all_pieces_per_color[Color.WHITE])
+        promotion_possible = bool(moves & Ranks[7*(1-board.color_to_play)])
     elif piece == Piece.ROOK:
         moves = get_rook_moves(sq.toBoard(), board.all_pieces, board.all_pieces_per_color[board.color_to_play])
     elif piece == Piece.BISHOP:
@@ -208,13 +179,13 @@ def get_legal_moves_from(piece, board, from_):
         start = right_bit_index + 1
         
         if promotion_possible and bool(rbi_bb & Rank[7*(1-board.color_to_play)]):
-            list_of_moves.append(Move(from_, right_bit_index, piece, promotion=Piece.QUEEN))
-            list_of_moves.append(Move(from_, right_bit_index, piece, promotion=Piece.KNIGHT))
-            list_of_moves.append(Move(from_, right_bit_index, piece, promotion=Piece.ROOK))
-            list_of_moves.append(Move(from_, right_bit_index, piece, promotion=Piece.BISHOP))
+            list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.QUEEN))
+            list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.KNIGHT))
+            list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.ROOK))
+            list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.BISHOP))
             
         else:
-            list_of_moves.append(Move(from_, right_bit_index, piece))
+            list_of_moves.append(Move(piece, from_, right_bit_index))
         moves = moves & ~rbi_bb
 
     return list_of_moves
@@ -265,6 +236,39 @@ def get_best_moveAB(board, depth = 1, debug = False, debug_str = ""):
         if debug: print(debug_str, "Move: ", m)
         score = factor*negamaxAB(board.move(m), -beta, -alpha, depth - 1, debug, debug_str[0]*(len(debug_str) +2))
         if debug: print(debug_str,'        Score: ', score)
+        lbs.append(score)
+    index = np.argmax([m for m in lbs])
+    if debug:
+        print(debug_str, "Score: ", factor*lbs[index], "   ---   Move: ", lms[index])
+
+    return lms[index]
+
+
+# Legace - Good for testing
+def negamax(board, depth = 0, debug = False, debug_str = ""):
+    if depth < 1:
+        if debug:
+            print(debug_str, "Score: ", evaluate_board(board), "   ---   Board: \n", board)
+        return evaluate_board(board)
+    factor = - board.color_to_play * 2 + 1
+    lms = get_legal_moves(board)
+
+    scores = [factor*negamax(board.move(m), depth - 1, debug, debug_str[0]*(len(debug_str) +2)) for m in lms]
+    index = np.argmax(scores)
+    score = scores[index]
+    if debug:
+        print(debug_str, " ***! Score: ", score, "   ---   Move: \n", lms[index], "   ---   Board: \n", board.move(lms[index]))
+    return factor*score
+
+def get_best_move(board, depth = 1, debug = False, debug_str = ""):
+    factor = - board.color_to_play * 2 + 1
+    lms = get_legal_moves(board)
+    lbs = []
+    for m in lms:
+        print(debug_str, "Move: ", m)
+        score = factor*negamax(board.move(m), depth - 1, debug, debug_str[0]*(len(debug_str) +2))
+        print(debug_str,'        Score: ', score)
+
         lbs.append(score)
     index = np.argmax([m for m in lbs])
     if debug:

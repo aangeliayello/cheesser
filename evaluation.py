@@ -15,7 +15,6 @@ def count_bits(x):
     x = (x & m2) + ((x >> np.uint64(2)) & m2)
     x = (x + (x >> np.uint64(4))) & m4
     c = (x * h01) >> np.uint64(56)
-    print(c)
     return c
 
 def evaluate_board(board):
