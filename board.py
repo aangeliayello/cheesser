@@ -149,3 +149,27 @@ class Board(object):
         board.color_to_play = opposite_color
 
         return board
+
+    def from_printed_board(self, pboard, color_to_play):
+        self.color_to_play = color_to_play
+        lettter_to_piece = {
+            "p": Piece.PAWN,
+            "r": Piece.ROOK,
+            "n": Piece.KNIGHT,
+            "b": Piece.BISHOP,
+            "q": Piece.QUEEN,
+            "k": Piece.KING,
+        }
+
+        for i in range(64):
+            letter = pboard[7 - (i // 8)][0][(i % 8)]
+            if letter == '_':
+                continue
+            if letter == letter.upper():
+                piece_color = Color.WHITE
+            else:
+                piece_color = Color.BLACK
+
+            self.pieces[piece_color][lettter_to_piece[letter.lower()]] |= Square(i).toBoard()
+            self.all_pieces_per_color[piece_color] |= Square(i).toBoard()
+            self.all_pieces |= Square(i).toBoard()

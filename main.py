@@ -50,4 +50,53 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    b0 = Board()
+    pboard = \
+        [['r' 'n' 'b' 'q' 'k' 'b' '_' 'r'],
+         ['p' '_' 'p' 'p' '_' 'p' 'p' '_'],
+         ['_' 'p' '_' '_' 'p' 'n' '_' 'p'],
+         ['_' 'N' '_' '_' '_' '_' 'B' '_'],
+         ['_' '_' '_' 'P' '_' '_' '_' '_'],
+         ['_' '_' '_' '_' '_' '_' '_' '_'],
+         ['P' 'P' 'P' '_' 'P' 'P' 'P' 'P'],
+         ['R' '_' '_' 'Q' 'K' 'B' 'N' 'R']]
+    from utils import Color
+    b0.from_printed_board(pboard, Color.WHITE)
+    print(b0)
+
+    print('****** Depts 1 ')
+    ss1 = time.time()
+    moveAB = get_best_moveAB(b0, 1, False, "-")
+    ee1 = time.time()
+    print(b0.color_to_play, moveAB, '  -  Took: ', round(ee1 - ss1), 's')
+    print(b0.move(moveAB))
+
+    print('****** Depts 2 ')
+    ss1 = time.time()
+    moveAB = get_best_moveAB(b0, 2, False, "-")
+    ee1 = time.time()
+    print(b0.color_to_play, moveAB, '  -  Took: ', round(ee1 - ss1), 's')
+    print(b0.move(moveAB))
+
+    print('****** Depts 3 ')
+    ss1 = time.time()
+    moveAB = get_best_moveAB(b0, 3, False, "-")
+    ee1 = time.time()
+    print(b0.color_to_play, moveAB, '  -  Took: ', round(ee1 - ss1), 's')
+    print(b0.move(moveAB))
+
+    print('****** Depts 4 ')
+    ss1 = time.time()
+    moveAB = get_best_moveAB(b0, 4, False, "-")
+    ee1 = time.time()
+    print(b0.color_to_play, moveAB, '  -  Took: ', round(ee1 - ss1), 's')
+    print(b0.move(moveAB))
+
+    print('****** Depts 5 ')
+    ss1 = time.time()
+    moveAB = get_best_moveAB(b0, 5, False, "-")
+    ee1 = time.time()
+    print(b0.color_to_play, moveAB, '  -  Took: ', round(ee1 - ss1), 's')
+    print(b0.move(moveAB))
+
+    #main()

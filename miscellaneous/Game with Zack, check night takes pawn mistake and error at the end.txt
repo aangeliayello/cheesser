@@ -1,0 +1,606 @@
+C:\Users\franc\AppData\Local\Programs\Python\Python39\python.exe C:/Users/franc/Documents/_FunAndProfit/cheeseer/main.py
+C:\Users\franc\Documents\_FunAndProfit\cheeseer\evaluation.py:17: RuntimeWarning: overflow encountered in ulonglong_scalars
+  c = (x * h01) >> np.uint64(56)
+[['r' 'n' 'b' 'q' 'k' 'b' 'n' 'r']
+ ['p' 'p' 'p' 'p' 'p' 'p' 'p' 'p']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['P' 'P' 'P' 'P' 'P' 'P' 'P' 'P']
+ ['R' 'N' 'B' 'Q' 'K' 'B' 'N' 'R']]
+*************** Cheeser AB ******************
+Color.WHITE KNIGHT: (1, 18)   -  Took:  2 s
+[['r' 'n' 'b' 'q' 'k' 'b' 'n' 'r']
+ ['p' 'p' 'p' 'p' 'p' 'p' 'p' 'p']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['_' '_' 'N' '_' '_' '_' '_' '_']
+ ['P' 'P' 'P' 'P' 'P' 'P' 'P' 'P']
+ ['R' '_' 'B' 'Q' 'K' 'B' 'N' 'R']]
+*************** Human ******************
+To play:  BLACK
+Enter from_, to, promotion, en_passant, castleSide
+pawn,52,44,,,
+52 44   
+Color.BLACK PAWN: (52, 44)
+[['r' 'n' 'b' 'q' 'k' 'b' 'n' 'r']
+ ['p' 'p' 'p' 'p' '_' 'p' 'p' 'p']
+ ['_' '_' '_' '_' 'p' '_' '_' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['_' '_' 'N' '_' '_' '_' '_' '_']
+ ['P' 'P' 'P' 'P' 'P' 'P' 'P' 'P']
+ ['R' '_' 'B' 'Q' 'K' 'B' 'N' 'R']]
+Is this the board that you expect, [y, n]?
+y
+*************** Cheeser AB ******************
+Color.WHITE KNIGHT: (18, 33)   -  Took:  3 s
+[['r' 'n' 'b' 'q' 'k' 'b' 'n' 'r']
+ ['p' 'p' 'p' 'p' '_' 'p' 'p' 'p']
+ ['_' '_' '_' '_' 'p' '_' '_' '_']
+ ['_' 'N' '_' '_' '_' '_' '_' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['P' 'P' 'P' 'P' 'P' 'P' 'P' 'P']
+ ['R' '_' 'B' 'Q' 'K' 'B' 'N' 'R']]
+*************** Human ******************
+To play:  BLACK
+Enter from_, to, promotion, en_passant, castleSide
+pawn,49,41,,,
+49 41   
+Color.BLACK PAWN: (49, 41)
+[['r' 'n' 'b' 'q' 'k' 'b' 'n' 'r']
+ ['p' '_' 'p' 'p' '_' 'p' 'p' 'p']
+ ['_' 'p' '_' '_' 'p' '_' '_' '_']
+ ['_' 'N' '_' '_' '_' '_' '_' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['P' 'P' 'P' 'P' 'P' 'P' 'P' 'P']
+ ['R' '_' 'B' 'Q' 'K' 'B' 'N' 'R']]
+Is this the board that you expect, [y, n]?
+y
+*************** Cheeser AB ******************
+Color.WHITE PAWN: (11, 27)   -  Took:  5 s
+[['r' 'n' 'b' 'q' 'k' 'b' 'n' 'r']
+ ['p' '_' 'p' 'p' '_' 'p' 'p' 'p']
+ ['_' 'p' '_' '_' 'p' '_' '_' '_']
+ ['_' 'N' '_' '_' '_' '_' '_' '_']
+ ['_' '_' '_' 'P' '_' '_' '_' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['P' 'P' 'P' '_' 'P' 'P' 'P' 'P']
+ ['R' '_' 'B' 'Q' 'K' 'B' 'N' 'R']]
+*************** Human ******************
+To play:  BLACK
+Enter from_, to, promotion, en_passant, castleSide
+knight,62,45,,,
+62 45   
+Color.BLACK KNIGHT: (62, 45)
+[['r' 'n' 'b' 'q' 'k' 'b' '_' 'r']
+ ['p' '_' 'p' 'p' '_' 'p' 'p' 'p']
+ ['_' 'p' '_' '_' 'p' 'n' '_' '_']
+ ['_' 'N' '_' '_' '_' '_' '_' '_']
+ ['_' '_' '_' 'P' '_' '_' '_' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['P' 'P' 'P' '_' 'P' 'P' 'P' 'P']
+ ['R' '_' 'B' 'Q' 'K' 'B' 'N' 'R']]
+Is this the board that you expect, [y, n]?
+y
+*************** Cheeser AB ******************
+Color.WHITE BISHOP: (2, 38)   -  Took:  6 s
+[['r' 'n' 'b' 'q' 'k' 'b' '_' 'r']
+ ['p' '_' 'p' 'p' '_' 'p' 'p' 'p']
+ ['_' 'p' '_' '_' 'p' 'n' '_' '_']
+ ['_' 'N' '_' '_' '_' '_' 'B' '_']
+ ['_' '_' '_' 'P' '_' '_' '_' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['P' 'P' 'P' '_' 'P' 'P' 'P' 'P']
+ ['R' '_' '_' 'Q' 'K' 'B' 'N' 'R']]
+*************** Human ******************
+To play:  BLACK
+Enter from_, to, promotion, en_passant, castleSide
+pawn, 55, 47,,,
+55 47   
+Color.BLACK PAWN: (55, 47)
+[['r' 'n' 'b' 'q' 'k' 'b' '_' 'r']
+ ['p' '_' 'p' 'p' '_' 'p' 'p' '_']
+ ['_' 'p' '_' '_' 'p' 'n' '_' 'p']
+ ['_' 'N' '_' '_' '_' '_' 'B' '_']
+ ['_' '_' '_' 'P' '_' '_' '_' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['P' 'P' 'P' '_' 'P' 'P' 'P' 'P']
+ ['R' '_' '_' 'Q' 'K' 'B' 'N' 'R']]
+Is this the board that you expect, [y, n]?
+y
+*************** Cheeser AB ******************
+Color.WHITE KNIGHT: (33, 50)   -  Took:  3 s
+[['r' 'n' 'b' 'q' 'k' 'b' '_' 'r']
+ ['p' '_' 'N' 'p' '_' 'p' 'p' '_']
+ ['_' 'p' '_' '_' 'p' 'n' '_' 'p']
+ ['_' '_' '_' '_' '_' '_' 'B' '_']
+ ['_' '_' '_' 'P' '_' '_' '_' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['P' 'P' 'P' '_' 'P' 'P' 'P' 'P']
+ ['R' '_' '_' 'Q' 'K' 'B' 'N' 'R']]
+*************** Human ******************
+To play:  BLACK
+Enter from_, to, promotion, en_passant, castleSide
+queen,59, 50,,,
+59 50   
+Color.BLACK QUEEN: (59, 50)
+[['r' 'n' 'b' '_' 'k' 'b' '_' 'r']
+ ['p' '_' 'q' 'p' '_' 'p' 'p' '_']
+ ['_' 'p' '_' '_' 'p' 'n' '_' 'p']
+ ['_' '_' '_' '_' '_' '_' 'B' '_']
+ ['_' '_' '_' 'P' '_' '_' '_' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['P' 'P' 'P' '_' 'P' 'P' 'P' 'P']
+ ['R' '_' '_' 'Q' 'K' 'B' 'N' 'R']]
+Is this the board that you expect, [y, n]?
+y
+*************** Cheeser AB ******************
+Color.WHITE BISHOP: (38, 20)   -  Took:  3 s
+[['r' 'n' 'b' '_' 'k' 'b' '_' 'r']
+ ['p' '_' 'q' 'p' '_' 'p' 'p' '_']
+ ['_' 'p' '_' '_' 'p' 'n' '_' 'p']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['_' '_' '_' 'P' '_' '_' '_' '_']
+ ['_' '_' '_' '_' 'B' '_' '_' '_']
+ ['P' 'P' 'P' '_' 'P' 'P' 'P' 'P']
+ ['R' '_' '_' 'Q' 'K' 'B' 'N' 'R']]
+*************** Human ******************
+To play:  BLACK
+Enter from_, to, promotion, en_passant, castleSide
+pawn,51,43,,,
+51 43   
+Color.BLACK PAWN: (51, 43)
+[['r' 'n' 'b' '_' 'k' 'b' '_' 'r']
+ ['p' '_' 'q' '_' '_' 'p' 'p' '_']
+ ['_' 'p' '_' 'p' 'p' 'n' '_' 'p']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['_' '_' '_' 'P' '_' '_' '_' '_']
+ ['_' '_' '_' '_' 'B' '_' '_' '_']
+ ['P' 'P' 'P' '_' 'P' 'P' 'P' 'P']
+ ['R' '_' '_' 'Q' 'K' 'B' 'N' 'R']]
+Is this the board that you expect, [y, n]?
+y
+
+*************** Cheeser AB ******************
+Color.WHITE BISHOP: (20, 29)   -  Took:  6 s
+[['r' 'n' 'b' '_' 'k' 'b' '_' 'r']
+ ['p' '_' 'q' '_' '_' 'p' 'p' '_']
+ ['_' 'p' '_' 'p' 'p' 'n' '_' 'p']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['_' '_' '_' 'P' '_' 'B' '_' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['P' 'P' 'P' '_' 'P' 'P' 'P' 'P']
+ ['R' '_' '_' 'Q' 'K' 'B' 'N' 'R']]
+*************** Human ******************
+To play:  BLACK
+Enter from_, to, promotion, en_passant, castleSide
+Enter from_, to, promotion, en_passant, castleSide
+pawn,41,33,,,
+41 33   
+Color.BLACK PAWN: (41, 33)
+[['r' 'n' 'b' '_' 'k' 'b' '_' 'r']
+ ['p' '_' 'q' '_' '_' 'p' 'p' '_']
+ ['_' '_' '_' 'p' 'p' 'n' '_' 'p']
+ ['_' 'p' '_' '_' '_' '_' '_' '_']
+ ['_' '_' '_' 'P' '_' 'B' '_' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['P' 'P' 'P' '_' 'P' 'P' 'P' 'P']
+ ['R' '_' '_' 'Q' 'K' 'B' 'N' 'R']]
+Is this the board that you expect, [y, n]?
+y
+*************** Cheeser AB ******************
+Color.WHITE QUEEN: (3, 19)   -  Took:  8 s
+[['r' 'n' 'b' '_' 'k' 'b' '_' 'r']
+ ['p' '_' 'q' '_' '_' 'p' 'p' '_']
+ ['_' '_' '_' 'p' 'p' 'n' '_' 'p']
+ ['_' 'p' '_' '_' '_' '_' '_' '_']
+ ['_' '_' '_' 'P' '_' 'B' '_' '_']
+ ['_' '_' '_' 'Q' '_' '_' '_' '_']
+ ['P' 'P' 'P' '_' 'P' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' 'B' 'N' 'R']]
+*************** Human ******************
+To play:  BLACK
+Enter from_, to, promotion, en_passant, castleSide
+pawn,48, 40,,,
+48 40   
+Color.BLACK PAWN: (48, 40)
+[['r' 'n' 'b' '_' 'k' 'b' '_' 'r']
+ ['_' '_' 'q' '_' '_' 'p' 'p' '_']
+ ['p' '_' '_' 'p' 'p' 'n' '_' 'p']
+ ['_' 'p' '_' '_' '_' '_' '_' '_']
+ ['_' '_' '_' 'P' '_' 'B' '_' '_']
+ ['_' '_' '_' 'Q' '_' '_' '_' '_']
+ ['P' 'P' 'P' '_' 'P' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' 'B' 'N' 'R']]
+Is this the board that you expect, [y, n]?
+y
+*************** Cheeser AB ******************
+Color.WHITE QUEEN: (19, 21)   -  Took:  11 s
+[['r' 'n' 'b' '_' 'k' 'b' '_' 'r']
+ ['_' '_' 'q' '_' '_' 'p' 'p' '_']
+ ['p' '_' '_' 'p' 'p' 'n' '_' 'p']
+ ['_' 'p' '_' '_' '_' '_' '_' '_']
+ ['_' '_' '_' 'P' '_' 'B' '_' '_']
+ ['_' '_' '_' '_' '_' 'Q' '_' '_']
+ ['P' 'P' 'P' '_' 'P' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' 'B' 'N' 'R']]
+*************** Human ******************
+To play:  BLACK
+Enter from_, to, promotion, en_passant, castleSide
+bishop,61,52,,,
+61 52   
+Color.BLACK BISHOP: (61, 52)
+[['r' 'n' 'b' '_' 'k' '_' '_' 'r']
+ ['_' '_' 'q' '_' 'b' 'p' 'p' '_']
+ ['p' '_' '_' 'p' 'p' 'n' '_' 'p']
+ ['_' 'p' '_' '_' '_' '_' '_' '_']
+ ['_' '_' '_' 'P' '_' 'B' '_' '_']
+ ['_' '_' '_' '_' '_' 'Q' '_' '_']
+ ['P' 'P' 'P' '_' 'P' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' 'B' 'N' 'R']]
+Is this the board that you expect, [y, n]?
+y
+*************** Cheeser AB ******************
+Color.WHITE QUEEN: (21, 56)   -  Took:  14 s
+[['Q' 'n' 'b' '_' 'k' '_' '_' 'r']
+ ['_' '_' 'q' '_' 'b' 'p' 'p' '_']
+ ['p' '_' '_' 'p' 'p' 'n' '_' 'p']
+ ['_' 'p' '_' '_' '_' '_' '_' '_']
+ ['_' '_' '_' 'P' '_' 'B' '_' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['P' 'P' 'P' '_' 'P' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' 'B' 'N' 'R']]
+*************** Human ******************
+To play:  BLACK
+Enter from_, to, promotion, en_passant, castleSide
+rook,63,61,,,
+63 61   
+Color.BLACK ROOK: (63, 61)
+[['Q' 'n' 'b' '_' 'k' 'r' '_' '_']
+ ['_' '_' 'q' '_' 'b' 'p' 'p' '_']
+ ['p' '_' '_' 'p' 'p' 'n' '_' 'p']
+ ['_' 'p' '_' '_' '_' '_' '_' '_']
+ ['_' '_' '_' 'P' '_' 'B' '_' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['P' 'P' 'P' '_' 'P' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' 'B' 'N' 'R']]
+Is this the board that you expect, [y, n]?
+y
+*************** Cheeser AB ******************
+Color.WHITE PAWN: (10, 18)   -  Took:  12 s
+[['Q' 'n' 'b' '_' 'k' 'r' '_' '_']
+ ['_' '_' 'q' '_' 'b' 'p' 'p' '_']
+ ['p' '_' '_' 'p' 'p' 'n' '_' 'p']
+ ['_' 'p' '_' '_' '_' '_' '_' '_']
+ ['_' '_' '_' 'P' '_' 'B' '_' '_']
+ ['_' '_' 'P' '_' '_' '_' '_' '_']
+ ['P' 'P' '_' '_' 'P' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' 'B' 'N' 'R']]
+*************** Human ******************
+To play:  BLACK
+Enter from_, to, promotion, en_passant, castleSide
+pawn,54,38,,,
+54 38   
+Color.BLACK PAWN: (54, 38)
+[['Q' 'n' 'b' '_' 'k' 'r' '_' '_']
+ ['_' '_' 'q' '_' 'b' 'p' '_' '_']
+ ['p' '_' '_' 'p' 'p' 'n' '_' 'p']
+ ['_' 'p' '_' '_' '_' '_' 'p' '_']
+ ['_' '_' '_' 'P' '_' 'B' '_' '_']
+ ['_' '_' 'P' '_' '_' '_' '_' '_']
+ ['P' 'P' '_' '_' 'P' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' 'B' 'N' 'R']]
+Is this the board that you expect, [y, n]?
+y
+*************** Cheeser AB ******************
+Color.WHITE BISHOP: (29, 20)   -  Took:  5 s
+[['Q' 'n' 'b' '_' 'k' 'r' '_' '_']
+ ['_' '_' 'q' '_' 'b' 'p' '_' '_']
+ ['p' '_' '_' 'p' 'p' 'n' '_' 'p']
+ ['_' 'p' '_' '_' '_' '_' 'p' '_']
+ ['_' '_' '_' 'P' '_' '_' '_' '_']
+ ['_' '_' 'P' '_' 'B' '_' '_' '_']
+ ['P' 'P' '_' '_' 'P' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' 'B' 'N' 'R']]
+*************** Human ******************
+To play:  BLACK
+Enter from_, to, promotion, en_passant, castleSide
+knight,45,35,,,
+45 35   
+Color.BLACK KNIGHT: (45, 35)
+[['Q' 'n' 'b' '_' 'k' 'r' '_' '_']
+ ['_' '_' 'q' '_' 'b' 'p' '_' '_']
+ ['p' '_' '_' 'p' 'p' '_' '_' 'p']
+ ['_' 'p' '_' 'n' '_' '_' 'p' '_']
+ ['_' '_' '_' 'P' '_' '_' '_' '_']
+ ['_' '_' 'P' '_' 'B' '_' '_' '_']
+ ['P' 'P' '_' '_' 'P' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' 'B' 'N' 'R']]
+Is this the board that you expect, [y, n]?
+y
+*************** Cheeser AB ******************
+Color.WHITE BISHOP: (20, 11)   -  Took:  4 s
+[['Q' 'n' 'b' '_' 'k' 'r' '_' '_']
+ ['_' '_' 'q' '_' 'b' 'p' '_' '_']
+ ['p' '_' '_' 'p' 'p' '_' '_' 'p']
+ ['_' 'p' '_' 'n' '_' '_' 'p' '_']
+ ['_' '_' '_' 'P' '_' '_' '_' '_']
+ ['_' '_' 'P' '_' '_' '_' '_' '_']
+ ['P' 'P' '_' 'B' 'P' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' 'B' 'N' 'R']]
+*************** Human ******************
+To play:  BLACK
+Enter from_, to, promotion, en_passant, castleSide
+knight,57,51,,,
+57 51   
+Color.BLACK KNIGHT: (57, 51)
+[['Q' '_' 'b' '_' 'k' 'r' '_' '_']
+ ['_' '_' 'q' 'n' 'b' 'p' '_' '_']
+ ['p' '_' '_' 'p' 'p' '_' '_' 'p']
+ ['_' 'p' '_' 'n' '_' '_' 'p' '_']
+ ['_' '_' '_' 'P' '_' '_' '_' '_']
+ ['_' '_' 'P' '_' '_' '_' '_' '_']
+ ['P' 'P' '_' 'B' 'P' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' 'B' 'N' 'R']]
+Is this the board that you expect, [y, n]?
+y
+*************** Cheeser AB ******************
+Color.WHITE PAWN: (12, 28)   -  Took:  8 s
+[['Q' '_' 'b' '_' 'k' 'r' '_' '_']
+ ['_' '_' 'q' 'n' 'b' 'p' '_' '_']
+ ['p' '_' '_' 'p' 'p' '_' '_' 'p']
+ ['_' 'p' '_' 'n' '_' '_' 'p' '_']
+ ['_' '_' '_' 'P' 'P' '_' '_' '_']
+ ['_' '_' 'P' '_' '_' '_' '_' '_']
+ ['P' 'P' '_' 'B' '_' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' 'B' 'N' 'R']]
+*************** Human ******************
+To play:  BLACK
+Enter from_, to, promotion, en_passant, castleSide
+pawn,44,36,,,
+44 36   
+Color.BLACK PAWN: (44, 36)
+[['Q' '_' 'b' '_' 'k' 'r' '_' '_']
+ ['_' '_' 'q' 'n' 'b' 'p' '_' '_']
+ ['p' '_' '_' 'p' '_' '_' '_' 'p']
+ ['_' 'p' '_' 'n' 'p' '_' 'p' '_']
+ ['_' '_' '_' 'P' 'P' '_' '_' '_']
+ ['_' '_' 'P' '_' '_' '_' '_' '_']
+ ['P' 'P' '_' 'B' '_' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' 'B' 'N' 'R']]
+Is this the board that you expect, [y, n]?
+y
+*************** Cheeser AB ******************
+Color.WHITE PAWN: (28, 35)   -  Took:  8 s
+[['Q' '_' 'b' '_' 'k' 'r' '_' '_']
+ ['_' '_' 'q' 'n' 'b' 'p' '_' '_']
+ ['p' '_' '_' 'p' '_' '_' '_' 'p']
+ ['_' 'p' '_' 'P' 'p' '_' 'p' '_']
+ ['_' '_' '_' 'P' '_' '_' '_' '_']
+ ['_' '_' 'P' '_' '_' '_' '_' '_']
+ ['P' 'P' '_' 'B' '_' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' 'B' 'N' 'R']]
+*************** Human ******************
+To play:  BLACK
+Enter from_, to, promotion, en_passant, castleSide
+pawn,53,37,,,
+53 37   
+Color.BLACK PAWN: (53, 37)
+[['Q' '_' 'b' '_' 'k' 'r' '_' '_']
+ ['_' '_' 'q' 'n' 'b' '_' '_' '_']
+ ['p' '_' '_' 'p' '_' '_' '_' 'p']
+ ['_' 'p' '_' 'P' 'p' 'p' 'p' '_']
+ ['_' '_' '_' 'P' '_' '_' '_' '_']
+ ['_' '_' 'P' '_' '_' '_' '_' '_']
+ ['P' 'P' '_' 'B' '_' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' 'B' 'N' 'R']]
+Is this the board that you expect, [y, n]?
+y
+*************** Cheeser AB ******************
+Color.WHITE PAWN: (27, 36)   -  Took:  9 s
+[['Q' '_' 'b' '_' 'k' 'r' '_' '_']
+ ['_' '_' 'q' 'n' 'b' '_' '_' '_']
+ ['p' '_' '_' 'p' '_' '_' '_' 'p']
+ ['_' 'p' '_' 'P' 'P' 'p' 'p' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['_' '_' 'P' '_' '_' '_' '_' '_']
+ ['P' 'P' '_' 'B' '_' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' 'B' 'N' 'R']]
+*************** Human ******************
+To play:  BLACK
+Enter from_, to, promotion, en_passant, castleSide
+pawn,43,36,,,
+43 36   
+Color.BLACK PAWN: (43, 36)
+[['Q' '_' 'b' '_' 'k' 'r' '_' '_']
+ ['_' '_' 'q' 'n' 'b' '_' '_' '_']
+ ['p' '_' '_' '_' '_' '_' '_' 'p']
+ ['_' 'p' '_' 'P' 'p' 'p' 'p' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['_' '_' 'P' '_' '_' '_' '_' '_']
+ ['P' 'P' '_' 'B' '_' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' 'B' 'N' 'R']]
+Is this the board that you expect, [y, n]?
+y
+*************** Cheeser AB ******************
+Color.WHITE BISHOP: (5, 19)   -  Took:  11 s
+[['Q' '_' 'b' '_' 'k' 'r' '_' '_']
+ ['_' '_' 'q' 'n' 'b' '_' '_' '_']
+ ['p' '_' '_' '_' '_' '_' '_' 'p']
+ ['_' 'p' '_' 'P' 'p' 'p' 'p' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['_' '_' 'P' 'B' '_' '_' '_' '_']
+ ['P' 'P' '_' 'B' '_' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' '_' 'N' 'R']]
+*************** Human ******************
+To play:  BLACK
+Enter from_, to, promotion, en_passant, castleSide
+rook,61,63,,,
+61 63   
+Color.BLACK ROOK: (61, 63)
+[['Q' '_' 'b' '_' 'k' '_' '_' 'r']
+ ['_' '_' 'q' 'n' 'b' '_' '_' '_']
+ ['p' '_' '_' '_' '_' '_' '_' 'p']
+ ['_' 'p' '_' 'P' 'p' 'p' 'p' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['_' '_' 'P' 'B' '_' '_' '_' '_']
+ ['P' 'P' '_' 'B' '_' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' '_' 'N' 'R']]
+Is this the board that you expect, [y, n]?
+y
+*************** Cheeser AB ******************
+Color.WHITE BISHOP: (19, 37)   -  Took:  12 s
+[['Q' '_' 'b' '_' 'k' '_' '_' 'r']
+ ['_' '_' 'q' 'n' 'b' '_' '_' '_']
+ ['p' '_' '_' '_' '_' '_' '_' 'p']
+ ['_' 'p' '_' 'P' 'p' 'B' 'p' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['_' '_' 'P' '_' '_' '_' '_' '_']
+ ['P' 'P' '_' 'B' '_' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' '_' 'N' 'R']]
+*************** Human ******************
+To play:  BLACK
+Enter from_, to, promotion, en_passant, castleSide
+rook,63,61,,,
+63 61   
+Color.BLACK ROOK: (63, 61)
+[['Q' '_' 'b' '_' 'k' 'r' '_' '_']
+ ['_' '_' 'q' 'n' 'b' '_' '_' '_']
+ ['p' '_' '_' '_' '_' '_' '_' 'p']
+ ['_' 'p' '_' 'P' 'p' 'B' 'p' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['_' '_' 'P' '_' '_' '_' '_' '_']
+ ['P' 'P' '_' 'B' '_' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' '_' 'N' 'R']]
+Is this the board that you expect, [y, n]?
+y
+*************** Cheeser AB ******************
+Color.WHITE BISHOP: (37, 46)   -  Took:  11 s
+[['Q' '_' 'b' '_' 'k' 'r' '_' '_']
+ ['_' '_' 'q' 'n' 'b' '_' '_' '_']
+ ['p' '_' '_' '_' '_' '_' 'B' 'p']
+ ['_' 'p' '_' 'P' 'p' '_' 'p' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['_' '_' 'P' '_' '_' '_' '_' '_']
+ ['P' 'P' '_' 'B' '_' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' '_' 'N' 'R']]
+*************** Human ******************
+To play:  BLACK
+Enter from_, to, promotion, en_passant, castleSide
+king,60,59,,,
+60 59   
+Color.BLACK KING: (60, 59)
+[['Q' '_' 'b' 'k' '_' 'r' '_' '_']
+ ['_' '_' 'q' 'n' 'b' '_' '_' '_']
+ ['p' '_' '_' '_' '_' '_' 'B' 'p']
+ ['_' 'p' '_' 'P' 'p' '_' 'p' '_']
+ ['_' '_' '_' '_' '_' '_' '_' '_']
+ ['_' '_' 'P' '_' '_' '_' '_' '_']
+ ['P' 'P' '_' 'B' '_' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' '_' 'N' 'R']]
+Is this the board that you expect, [y, n]?
+y
+*************** Cheeser AB ******************
+Color.WHITE BISHOP: (46, 28)   -  Took:  13 s
+[['Q' '_' 'b' 'k' '_' 'r' '_' '_']
+ ['_' '_' 'q' 'n' 'b' '_' '_' '_']
+ ['p' '_' '_' '_' '_' '_' '_' 'p']
+ ['_' 'p' '_' 'P' 'p' '_' 'p' '_']
+ ['_' '_' '_' '_' 'B' '_' '_' '_']
+ ['_' '_' 'P' '_' '_' '_' '_' '_']
+ ['P' 'P' '_' 'B' '_' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' '_' 'N' 'R']]
+*************** Human ******************
+To play:  BLACK
+Enter from_, to, promotion, en_passant, castleSide
+pawn,47,39,,,
+47 39   
+Color.BLACK PAWN: (47, 39)
+[['Q' '_' 'b' 'k' '_' 'r' '_' '_']
+ ['_' '_' 'q' 'n' 'b' '_' '_' '_']
+ ['p' '_' '_' '_' '_' '_' '_' '_']
+ ['_' 'p' '_' 'P' 'p' '_' 'p' 'p']
+ ['_' '_' '_' '_' 'B' '_' '_' '_']
+ ['_' '_' 'P' '_' '_' '_' '_' '_']
+ ['P' 'P' '_' 'B' '_' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' '_' 'N' 'R']]
+Is this the board that you expect, [y, n]?
+y
+*************** Cheeser AB ******************
+Color.WHITE BISHOP: (11, 20)   -  Took:  12 s
+[['Q' '_' 'b' 'k' '_' 'r' '_' '_']
+ ['_' '_' 'q' 'n' 'b' '_' '_' '_']
+ ['p' '_' '_' '_' '_' '_' '_' '_']
+ ['_' 'p' '_' 'P' 'p' '_' 'p' 'p']
+ ['_' '_' '_' '_' 'B' '_' '_' '_']
+ ['_' '_' 'P' '_' 'B' '_' '_' '_']
+ ['P' 'P' '_' '_' '_' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' '_' 'N' 'R']]
+*************** Human ******************
+To play:  BLACK
+Enter from_, to, promotion, en_passant, castleSide
+knight,51,45,,,
+51 45   
+Color.BLACK KNIGHT: (51, 45)
+[['Q' '_' 'b' 'k' '_' 'r' '_' '_']
+ ['_' '_' 'q' '_' 'b' '_' '_' '_']
+ ['p' '_' '_' '_' '_' 'n' '_' '_']
+ ['_' 'p' '_' 'P' 'p' '_' 'p' 'p']
+ ['_' '_' '_' '_' 'B' '_' '_' '_']
+ ['_' '_' 'P' '_' 'B' '_' '_' '_']
+ ['P' 'P' '_' '_' '_' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' '_' 'N' 'R']]
+Is this the board that you expect, [y, n]?
+y
+*************** Cheeser AB ******************
+Color.WHITE PAWN: (35, 43)   -  Took:  8 s
+[['Q' '_' 'b' 'k' '_' 'r' '_' '_']
+ ['_' '_' 'q' '_' 'b' '_' '_' '_']
+ ['p' '_' '_' 'P' '_' 'n' '_' '_']
+ ['_' 'p' '_' '_' 'p' '_' 'p' 'p']
+ ['_' '_' '_' '_' 'B' '_' '_' '_']
+ ['_' '_' 'P' '_' 'B' '_' '_' '_']
+ ['P' 'P' '_' '_' '_' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' '_' 'N' 'R']]
+*************** Human ******************
+To play:  BLACK
+Enter from_, to, promotion, en_passant, castleSide
+knight,45,28,,,
+45 28   
+Color.BLACK KNIGHT: (45, 28)
+[['Q' '_' 'b' 'k' '_' 'r' '_' '_']
+ ['_' '_' 'q' '_' 'b' '_' '_' '_']
+ ['p' '_' '_' 'P' '_' '_' '_' '_']
+ ['_' 'p' '_' '_' 'p' '_' 'p' 'p']
+ ['_' '_' '_' '_' 'n' '_' '_' '_']
+ ['_' '_' 'P' '_' 'B' '_' '_' '_']
+ ['P' 'P' '_' '_' '_' 'P' 'P' 'P']
+ ['R' '_' '_' '_' 'K' '_' 'N' 'R']]
+Is this the board that you expect, [y, n]?
+y
+*************** Cheeser AB ******************
+Traceback (most recent call last):
+  File "C:\Users\franc\Documents\_FunAndProfit\cheeseer\main.py", line 53, in <module>
+    main()
+  File "C:\Users\franc\Documents\_FunAndProfit\cheeseer\main.py", line 15, in main
+    moveAB = get_best_moveAB(b0, 3, False, "-")
+  File "C:\Users\franc\Documents\_FunAndProfit\cheeseer\moves.py", line 204, in get_best_moveAB
+    score = factor*negamaxAB(board.move(m), -beta, -alpha, depth - 1, debug, debug_str[0]*(len(debug_str) +2))
+  File "C:\Users\franc\Documents\_FunAndProfit\cheeseer\moves.py", line 183, in negamaxAB
+    score = factor*negamaxAB(board.move(m), -beta, -alpha, depth - 1, debug, debug_str[0]*(len(debug_str) +2))
+  File "C:\Users\franc\Documents\_FunAndProfit\cheeseer\moves.py", line 179, in negamaxAB
+    lms = get_legal_moves(board)
+  File "C:\Users\franc\Documents\_FunAndProfit\cheeseer\moves.py", line 169, in get_legal_moves
+    lms += get_legal_moves_from(piece, board, right_bit_index)
+  File "C:\Users\franc\Documents\_FunAndProfit\cheeseer\moves.py", line 148, in get_legal_moves_from
+    if promotion_possible and bool(rbi_bb & Rank[7*(1-board.color_to_play)]):
+  File "C:\Users\franc\AppData\Local\Programs\Python\Python39\lib\enum.py", line 432, in __getitem__
+    return cls._member_map_[name]
+KeyError: 7
+
+Process finished with exit code 1

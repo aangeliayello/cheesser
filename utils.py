@@ -126,4 +126,3 @@ def printBb(bb):
     board = np.flip(board.reshape((8, 8)), 0)
 
     print(board)
-    

@@ -145,7 +145,7 @@ def get_legal_moves_from(piece, board, from_):
         rbi_bb = Square(right_bit_index).toBoard()
         start = right_bit_index + 1
         
-        if promotion_possible and bool(rbi_bb & Rank[7*(1-board.color_to_play)]):
+        if promotion_possible and bool(rbi_bb & Ranks[7*(1-board.color_to_play)]):
             list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.QUEEN))
             list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.KNIGHT))
             list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.ROOK))
