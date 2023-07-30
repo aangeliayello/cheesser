@@ -8,6 +8,8 @@ Files = np.array([A_file << np.uint64(i) for i in range(8)], dtype=np.uint64)
 First_rank = np.uint64(0b0000000000000000000000000000000000000000000000000000000011111111)
 Ranks = np.array([First_rank << np.uint64(i*8) for i in range(8)], dtype=np.uint64)
 
+A1H8_diagonal = np.uint64(0b1000000001000000001000000001000000001000000001000000001000000001)
+
 file_mask = []
 rank_mask = []
 for i in range(64):
@@ -19,6 +21,7 @@ for i in range(64):
 
 FILE_MASK = dict(file_mask)
 RANK_MASK = dict(rank_mask)
+
 
 def get_kingLike_moves(bb):
     w = (bb >> np.uint64(1)) & ~Files[File.H]
@@ -134,6 +137,35 @@ def get_left_diagonal_moves(bb, occupancy):
 
     return moves
 
+def get_pawn_moves_white(bb, occupancy):
+    moves = (bb << np.uint64(8)) & ~occupancy
+    if (bb & Ranks[Rank.Two]):
+        moves |= (moves << np.uint64(8)) & ~occupancy
+    return moves
+
+def get_pawn_moves_black(bb, occupancy):
+    moves = (bb >> np.uint64(8)) & ~occupancy
+    if (bb & Ranks[Rank.Seven]) and (moves):
+        moves |= (moves >> np.uint64(8)) & ~occupancy
+    return moves
+
+def get_pawn_attacks_white(bb, opposite_color_occunpancy):
+    # _A_B_
+    # __X__
+    a = ((bb & ~Files[File.A]) << np.uint64(7))&opposite_color_occunpancy
+    b  = ((bb & ~Files[File.H]) << np.uint64(9))&opposite_color_occunpancy
+
+    return a | b
+
+def get_pawn_attacks_black(bb, opposite_color_occunpancy):
+    # __X__
+    # _A_B_
+
+    a = ((bb & ~Files[File.A]) >> np.uint64(9))&opposite_color_occunpancy
+    b = ((bb & ~Files[File.H]) >> np.uint64(7))&opposite_color_occunpancy
+
+    return a | b
+
 KING_MOVES = dict([ (Square(i).toBoard(),get_kingLike_moves(Square(i).toBoard())) for i in range(64)])
 KNIGHT_MOVES = dict([ (Square(i).toBoard(),get_knightLike_moves(Square(i).toBoard())) for i in range(64)])
 
@@ -151,6 +183,8 @@ for square in range(8):
 RANK_MOVES = dict(rank_moves)
 
 file_moves = []
+white_pawn_simple_moves = []
+black_pawn_simple_moves = []
 for occupancy in range(256):
 
     occupancy_bb = np.uint64(occupancy)
@@ -167,6 +201,32 @@ for occupancy in range(256):
             shifted_occupancy = rotated_occupancy_bb << np.uint64(shift)
             key = (shifted_sqr_bb, shifted_occupancy)
             file_moves.append([key, get_file_moves(shifted_sqr_bb, shifted_occupancy)])
+            white_pawn_simple_moves.append([key, get_pawn_moves_white(shifted_sqr_bb, shifted_occupancy)])
+            black_pawn_simple_moves.append([key, get_pawn_moves_black(shifted_sqr_bb, shifted_occupancy)])
 
 FILE_MOVES = dict(file_moves)
+WHITE_PAWN_MOVES = dict(white_pawn_simple_moves)
+BLACK_PAWN_MOVES = dict(black_pawn_simple_moves)
 
+white_pawn_attack_moves = []
+black_pawn_attack_moves = []
+for square in range(8):
+    sq_bb = Square(square).toBoard()
+    for occupancy in range(256):
+        occupancy_bb = np.uint64(occupancy)
+        for shift in range(7):
+
+            # White
+            shifted_white_sqr_bb = sq_bb << np.uint64(8*(shift+1)) # start in second rank
+            shifted_white_occupancy = occupancy_bb << np.uint64(8*(shift+2)) # only care about the occupancy in the rank infront of the pawn
+            key = (shifted_sqr_bb, shifted_occupancy)
+            white_pawn_attack_moves.append([key,get_rank_moves(shifted_white_sqr_bb, shifted_white_occupancy)])
+
+            # Black
+            shifted_black_sqr_bb = sq_bb << np.uint64(8*(7 - shift -1))
+            shifted_black_occupancy = occupancy_bb << np.uint64(8 * (7 - shift -2))
+            key = (shifted_sqr_bb, shifted_occupancy)
+            black_pawn_attack_moves.append([key, get_rank_moves(shifted_black_sqr_bb, shifted_black_occupancy)])
+
+WHITE_PAWN_ATTACK_MOVES = dict(white_pawn_attack_moves)
+BLACK_PAWN_ATTACK_MOVES = dict(black_pawn_attack_moves)
