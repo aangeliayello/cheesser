@@ -1,5 +1,5 @@
 # CHEeSSer
-Here we will attempt to build a chess bot that plays legal moves :)
+p/q2-q4!
 
 ## TODO:
      Game:
