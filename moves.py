@@ -1,7 +1,8 @@
 import numpy as np
+import random
 from utils import *
 from evaluation import evaluate_board
-from precalculations import KING_MOVES, KNIGHT_MOVES, FILE_MOVES, RANK_MOVES, Files, Ranks, FILE_MASK, RANK_MASK
+from precalculations import KING_MOVES, KNIGHT_MOVES, FILE_MOVES, RANK_MOVES, Files, Ranks, FILE_MASK, RANK_MASK, DIAGONAL_MOVES, DIAGONAL_MASK, ANTI_DIAGONAL_MOVES, ANTI_DIAGONAL_MASK, BLACK_PAWN_ATTACK_MOVES, BLACK_PAWN_MOVES, WHITE_PAWN_ATTACK_MOVES, WHITE_PAWN_MOVES
 
 class Move(object):
     def __init__(self, piece, from_, to, promotion=None, en_passant=False, castleSide=None):
@@ -30,44 +31,12 @@ def get_rank_moves(bb, occupancy):
     return RANK_MOVES[(bb, occupancy)]
 
 def get_right_diagonal_moves(bb, occupancy):
-    moves = np.uint64(0)
-    bb_up_right = bb
-    bb_down_left = bb
-
-    # up
-    for i in range(1, 8):
-        bb_up_right = (bb_up_right & ~Files[File.H]) << np.uint64(9)
-        if bb_up_right == 0: break
-        moves |= bb_up_right
-        if bb_up_right & occupancy: break
-
-    for i in range(1, 8):
-        bb_down_left = (bb_down_left & ~Files[File.A]) >> np.uint64(9)
-        if bb_down_left == 0: break
-        moves |= bb_down_left
-        if bb_down_left & occupancy: break
-
-    return moves
+    clean_occupancy = occupancy & DIAGONAL_MASK[bb]
+    return DIAGONAL_MOVES[(bb, clean_occupancy)]
 
 def get_left_diagonal_moves(bb, occupancy):
-    moves = np.uint64(0)
-    bb_up_left = bb
-    bb_down_right = bb
-
-    # up
-    for i in range(1, 8):
-        bb_up_left = (bb_up_left & ~Files[File.A]) << np.uint64(7)
-        if bb_up_left == 0: break
-        moves |= bb_up_left
-        if bb_up_left & occupancy: break
-
-    for i in range(1, 8):
-        bb_down_right = (bb_down_right & ~Files[File.H]) >> np.uint64(7)
-        if bb_down_right == 0: break
-        moves |= bb_down_right
-        if bb_down_right & occupancy: break
-
-    return moves
+    clean_occupancy = occupancy & ANTI_DIAGONAL_MASK[bb]
+    return ANTI_DIAGONAL_MOVES[(bb, clean_occupancy)]
 
 def get_rook_moves(bb, occupancy, same_color_occupancy):
     return (get_file_moves(bb, occupancy) | get_rank_moves(bb, occupancy)) & ~same_color_occupancy
@@ -88,33 +57,20 @@ def get_pawn_attack_en_passant_white(bb, opposite_color_occunpancy):
     return None
 
 def get_pawn_attacks_white(bb, opposite_color_occunpancy):
-    # _A_B_
-    # __X__
-    a = ((bb & ~Files[File.A]) << np.uint64(7))&opposite_color_occunpancy
-    b  = ((bb & ~Files[File.H]) << np.uint64(9))&opposite_color_occunpancy
-
-    return a | b
+    clean_occupancy = opposite_color_occunpancy & (RANK_MASK[bb] << np.uint64(8))
+    return WHITE_PAWN_ATTACK_MOVES[(bb, clean_occupancy)]
 
 def get_pawn_attacks_black(bb, opposite_color_occunpancy):
-    # __X__
-    # _A_B_
-
-    a = ((bb & ~Files[File.A]) >> np.uint64(9))&opposite_color_occunpancy
-    b = ((bb & ~Files[File.H]) >> np.uint64(7))&opposite_color_occunpancy
-
-    return a | b
+    clean_occupancy = opposite_color_occunpancy & (RANK_MASK[bb] >> np.uint64(8))
+    return BLACK_PAWN_ATTACK_MOVES[(bb, clean_occupancy)]
 
 def get_pawn_moves_white(bb, occupancy):
-    moves = (bb << np.uint64(8)) & ~occupancy
-    if (bb & Ranks[Rank.Two]):
-        moves |= (moves << np.uint64(8)) & ~occupancy
-    return moves
+    clean_occupancy = occupancy & FILE_MASK[bb]
+    return WHITE_PAWN_MOVES[(bb, clean_occupancy)]
 
 def get_pawn_moves_black(bb, occupancy):
-    moves = (bb >> np.uint64(8)) & ~occupancy
-    if (bb & Ranks[Rank.Seven]) and (moves):
-        moves |= (moves >> np.uint64(8)) & ~occupancy
-    return moves
+    clean_occupancy = occupancy & FILE_MASK[bb]
+    return BLACK_PAWN_MOVES[(bb, clean_occupancy)]
 
 def get_legal_moves_from(piece, board, from_):
     sq = Square(from_)
@@ -208,8 +164,7 @@ def get_best_moveAB(board, depth = 1, debug = False, debug_str = ""):
     if debug:
         print(debug_str, "Score: ", factor*lbs[index], "   ---   Move: ", lms[index])
 
-    return lms[index]
-
+    return lms[index], lbs[index]
 
 # Legace - Good for testing
 def negamax(board, depth = 0, debug = False, debug_str = ""):
@@ -242,3 +197,11 @@ def get_best_move(board, depth = 1, debug = False, debug_str = ""):
         print(debug_str, "Score: ", factor*lbs[index], "   ---   Move: ", lms[index])
 
     return lms[index]
+
+def get_random_move(board, depth = 1, debug = False, debug_str = ""):
+    lms = get_legal_moves(board)
+    if lms:
+        index = random.randint(0, len(lms)-1)
+        return lms[index]
+    else:
+        return None

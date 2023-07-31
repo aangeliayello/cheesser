@@ -1,22 +1,22 @@
 import time
 from utils import Piece, CastleSide
-from moves import Move, get_best_moveAB, get_best_move
+from moves import Move, get_best_moveAB, get_best_move, get_random_move
 from board import Board
+import random
 
 def main():
-    humanPlaying = True
+    humanPlaying = False
     b0 = Board()
     b0.base_board()
     print(b0)
     while True:
-
         print('*************** Cheeser AB ******************')
         ss1 = time.time()
-        moveAB = get_best_moveAB(b0, 3, False, "-")
+        moveAB,score = get_best_moveAB(b0, 3, False, "-")
         ee1 = time.time()
         print(b0.color_to_play, moveAB, '  -  Took: ', round(ee1-ss1), 's')
-        print(b0.move(moveAB))
-        b0 = b0.move(moveAB)
+        print(b0.move(moveAB, score))
+        b0 = b0.move(moveAB, score)
 
         if humanPlaying:
             print('*************** Human ******************')
@@ -48,55 +48,45 @@ def main():
                 else:
                     print("Let's try again!")
 
-
-if __name__ == "__main__":
-    b0 = Board()
-    pboard = \
-        [['r' 'n' 'b' 'q' 'k' 'b' '_' 'r'],
-         ['p' '_' 'p' 'p' '_' 'p' 'p' '_'],
-         ['_' 'p' '_' '_' 'p' 'n' '_' 'p'],
-         ['_' 'N' '_' '_' '_' '_' 'B' '_'],
-         ['_' '_' '_' 'P' '_' '_' '_' '_'],
-         ['_' '_' '_' '_' '_' '_' '_' '_'],
-         ['P' 'P' 'P' '_' 'P' 'P' 'P' 'P'],
-         ['R' '_' '_' 'Q' 'K' 'B' 'N' 'R']]
-    from utils import Color
-    b0.from_printed_board(pboard, Color.WHITE)
-    print(b0)
-
-    print('****** Depts 1 ')
-    ss1 = time.time()
-    moveAB = get_best_moveAB(b0, 1, False, "-")
-    ee1 = time.time()
-    print(b0.color_to_play, moveAB, '  -  Took: ', round(ee1 - ss1), 's')
-    print(b0.move(moveAB))
-
-    print('****** Depts 2 ')
-    ss1 = time.time()
-    moveAB = get_best_moveAB(b0, 2, False, "-")
-    ee1 = time.time()
-    print(b0.color_to_play, moveAB, '  -  Took: ', round(ee1 - ss1), 's')
-    print(b0.move(moveAB))
-
-    print('****** Depts 3 ')
-    ss1 = time.time()
-    moveAB = get_best_moveAB(b0, 3, False, "-")
-    ee1 = time.time()
-    print(b0.color_to_play, moveAB, '  -  Took: ', round(ee1 - ss1), 's')
-    print(b0.move(moveAB))
-
-    print('****** Depts 4 ')
-    ss1 = time.time()
-    moveAB = get_best_moveAB(b0, 4, False, "-")
-    ee1 = time.time()
-    print(b0.color_to_play, moveAB, '  -  Took: ', round(ee1 - ss1), 's')
-    print(b0.move(moveAB))
-
-    print('****** Depts 5 ')
-    ss1 = time.time()
-    moveAB = get_best_moveAB(b0, 5, False, "-")
-    ee1 = time.time()
-    print(b0.color_to_play, moveAB, '  -  Took: ', round(ee1 - ss1), 's')
-    print(b0.move(moveAB))
-
+if __name__ == "__main__" and True:
     #main()
+    b0 = Board()
+    b0.base_board()
+    print(b0)
+    for _ in range(1):
+        print('*************** Cheeser AB ******************')
+        ss1 = time.time()
+        moveAB,score = get_best_moveAB(b0, 4, False, "-")
+        ee1 = time.time()
+        print(b0.color_to_play, moveAB, '  -  Took: ', round(ee1-ss1), 's')
+        print(b0.move(moveAB, score))
+        b0 = b0.move(moveAB, score)
+    print(b0.board_history)
+    random.seed(10)
+    # for foo in range(3):
+    #     b0 = Board()
+    #     b0.base_board()
+    #     index = 0
+    #     cycles = 0
+    #     cycles = 0
+    #     sinceCycle = 0
+    #     ss0 = time.time()
+    #
+    #     while True:
+    #         ss1 = time.time()
+    #         moveAB = get_random_move(b0, 1, False, "-")
+    #         if moveAB is None or sinceCycle > 50:
+    #             cycles += 1
+    #             sinceCycle = 1
+    #             b0 = Board()
+    #             b0.base_board()
+    #             moveAB = get_random_move(b0, 1, False, "-")
+    #
+    #         ee1 = time.time()
+    #         b0 = b0.move(moveAB)
+    #         index += 1
+    #         sinceCycle += 1
+    #         if index == 50000:
+    #             break
+    #     ee0 = time.time()
+    #     print('Took: ', round(ee0 - ss0, 2), 's')

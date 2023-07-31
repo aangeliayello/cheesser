@@ -9,7 +9,7 @@ class Board(object):
         self.color_to_play = Color.WHITE  
         self.en_passant_sqr = None
         self.castling_available = np.ones((2, 2), dtype=bool)
-        
+        self.board_history = ""
     def __str__(self):
         board = np.empty(64, dtype=str)
         board[:] = '_'
@@ -75,13 +75,18 @@ class Board(object):
         self.all_pieces = np.uint64(
             0b1111111111111111000000000000000000000000000000001111111111111111)
 
-    def move(self, m):
+    def move(self, m, score = None):
         board = Board()
         board.pieces = np.copy(self.pieces)
         board.all_pieces_per_color = np.copy(self.all_pieces_per_color)
         board.all_pieces = np.copy(self.all_pieces)
         board.color_to_play = self.color_to_play
-        
+        score_str= ""
+        if score:
+            score_str = "_(" + str(score) + ")"
+        event = "[" + self.color_to_play.name + "_" + m.piece.name + "_" + str(m.from_) + "_" + str(m.to) + score_str + "]"
+        board.board_history = self.board_history + event
+
         bb_not_from = ~ Square(m.from_).toBoard()
         bb_to = Square(m.to).toBoard()
 

@@ -1,5 +1,6 @@
-import numpy
+import random
 
+import numpy
 from utils import *
 
 A_file = np.uint64(0b0000000100000001000000010000000100000001000000010000000100000001)
@@ -7,8 +8,6 @@ Files = np.array([A_file << np.uint64(i) for i in range(8)], dtype=np.uint64)
 
 First_rank = np.uint64(0b0000000000000000000000000000000000000000000000000000000011111111)
 Ranks = np.array([First_rank << np.uint64(i*8) for i in range(8)], dtype=np.uint64)
-
-A1H8_diagonal = np.uint64(0b1000000001000000001000000001000000001000000001000000001000000001)
 
 file_mask = []
 rank_mask = []
@@ -22,6 +21,38 @@ for i in range(64):
 FILE_MASK = dict(file_mask)
 RANK_MASK = dict(rank_mask)
 
+A1H8_diagonal = np.uint64(0b1000000001000000001000000001000000001000000001000000001000000001)
+north_diagonals = []
+south_diagonals = []
+north_shifted_diag = A1H8_diagonal
+south_shifted_diag = A1H8_diagonal
+
+for i in range(1,8):
+    north_shifted_diag = north_shifted_diag << np.uint64(8)
+    south_shifted_diag = south_shifted_diag >> np.uint64(8)
+    north_diagonals.append(north_shifted_diag)
+    south_diagonals.append(south_shifted_diag)
+north_diagonals.reverse()
+diagonals = north_diagonals + [A1H8_diagonal] + south_diagonals
+anti_diagonals = []
+for d in diagonals:
+    anti_diagonals.append(mirror_bb_horizontal(d))
+
+anti_diagonal_masks = []
+diagonal_masks = []
+for i in range(64):
+    sqr_bb = Square(i).toBoard()
+    for d in diagonals:
+        if d & sqr_bb:
+            diagonal_masks.append((sqr_bb, d))
+            break
+    for ad in anti_diagonals:
+        if ad & sqr_bb:
+            anti_diagonal_masks.append((sqr_bb, ad))
+            break
+
+ANTI_DIAGONAL_MASK = dict(anti_diagonal_masks)
+DIAGONAL_MASK = dict(diagonal_masks)
 
 def get_kingLike_moves(bb):
     w = (bb >> np.uint64(1)) & ~Files[File.H]
@@ -214,19 +245,62 @@ for square in range(8):
     sq_bb = Square(square).toBoard()
     for occupancy in range(256):
         occupancy_bb = np.uint64(occupancy)
-        for shift in range(7):
-
+        for shift in range(6):
             # White
-            shifted_white_sqr_bb = sq_bb << np.uint64(8*(shift+1)) # start in second rank
+            shifted_white_sqr_bb = sq_bb << np.uint64(8*(shift+1)) # start in 2nd rank and finish in the 7th rank
             shifted_white_occupancy = occupancy_bb << np.uint64(8*(shift+2)) # only care about the occupancy in the rank infront of the pawn
-            key = (shifted_sqr_bb, shifted_occupancy)
-            white_pawn_attack_moves.append([key,get_rank_moves(shifted_white_sqr_bb, shifted_white_occupancy)])
+            key = (shifted_white_sqr_bb, shifted_white_occupancy)
+            white_pawn_attack_moves.append([key,get_pawn_attacks_white(shifted_white_sqr_bb, shifted_white_occupancy)])
 
+        for shift in range(6):
             # Black
-            shifted_black_sqr_bb = sq_bb << np.uint64(8*(7 - shift -1))
-            shifted_black_occupancy = occupancy_bb << np.uint64(8 * (7 - shift -2))
-            key = (shifted_sqr_bb, shifted_occupancy)
-            black_pawn_attack_moves.append([key, get_rank_moves(shifted_black_sqr_bb, shifted_black_occupancy)])
+            shifted_black_sqr_bb = sq_bb << np.uint64(8*(7 - shift -1)) #start in the 7th rank and finish in the 2nd rank
+            shifted_black_occupancy = occupancy_bb << np.uint64(8 * (7 - shift - 2))
+            key = (shifted_black_sqr_bb, shifted_black_occupancy)
+            black_pawn_attack_moves.append([key, get_pawn_attacks_black(shifted_black_sqr_bb, shifted_black_occupancy)])
 
 WHITE_PAWN_ATTACK_MOVES = dict(white_pawn_attack_moves)
 BLACK_PAWN_ATTACK_MOVES = dict(black_pawn_attack_moves)
+
+diagonal_moves = []
+anti_diagonal_moves = []
+for occupancy in range(256):
+    occupancy_bb = np.uint64(occupancy)
+    diagonal_occupancy_bb = np.uint64(0)
+
+    # rotate first rank to the main diagonal
+    for i in range(8):
+        # pick the ith bit and move it up 8*i times
+        diagonal_occupancy_bb |= (occupancy_bb & (np.uint64(1) << np.uint64(i))) << np.uint64(8*i)
+
+    for square in range(8):
+        sq_bb = Square(square).toBoard() << np.uint64(8*square)
+
+        for shift in range(7):
+            shifted_sqr_bb = sq_bb << np.uint64(8*(7-shift))
+            shifted_occupancy = diagonal_occupancy_bb << np.uint64(8*(7-shift))
+            key = (shifted_sqr_bb, shifted_occupancy)
+            if shifted_sqr_bb!= 0:
+                diagonal_moves.append([key, get_right_diagonal_moves(shifted_sqr_bb, shifted_occupancy)])
+
+            shifted_sqr_bb = mirror_bb_horizontal(shifted_sqr_bb)
+            shifted_occupancy = mirror_bb_horizontal(shifted_occupancy)
+            key = (shifted_sqr_bb, shifted_occupancy)
+            if shifted_sqr_bb != 0:
+                anti_diagonal_moves.append([key, get_left_diagonal_moves(shifted_sqr_bb, shifted_occupancy)])
+
+        for shift in range(8):
+            shifted_sqr_bb = sq_bb >> np.uint64(8*shift)
+            shifted_occupancy = diagonal_occupancy_bb >> np.uint64(8*shift)
+            key = (shifted_sqr_bb, shifted_occupancy)
+            if shifted_sqr_bb != 0:
+                diagonal_moves.append([key, get_right_diagonal_moves(shifted_sqr_bb, shifted_occupancy)])
+
+            shifted_sqr_bb = mirror_bb_horizontal(shifted_sqr_bb)
+            shifted_occupancy = mirror_bb_horizontal(shifted_occupancy)
+            key = (shifted_sqr_bb, shifted_occupancy)
+            if shifted_sqr_bb != 0:
+                anti_diagonal_moves.append([key, get_left_diagonal_moves(shifted_sqr_bb, shifted_occupancy)])
+
+DIAGONAL_MOVES = dict(diagonal_moves)
+ANTI_DIAGONAL_MOVES = dict(anti_diagonal_moves)

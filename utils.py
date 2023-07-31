@@ -1,8 +1,9 @@
 import numpy as np
 from enum import IntEnum
 
-ring0 = np.uint64(0b0000000000000000000000000001100000011000000000000000000000000000)
-ring1 = np.uint64(0b0000000000000000001111000010010000100100001111000000000000000000)
+k1 = np.uint64(0x5555555555555555)
+k2 = np.uint64(0x3333333333333333)
+k4 = np.uint64(0x0f0f0f0f0f0f0f0f)
 
 class Square(object):
     def __init__(self, index):
@@ -126,3 +127,9 @@ def printBb(bb):
     board = np.flip(board.reshape((8, 8)), 0)
 
     print(board)
+
+def mirror_bb_horizontal(bb):
+   bb = ((bb >> np.uint64(1)) & k1) | ((bb & k1) << np.uint64(1))
+   bb = ((bb >> np.uint64(2)) & k2) | ((bb & k2) << np.uint64(2))
+   bb = ((bb >> np.uint64(4)) & k4) | ((bb & k4) << np.uint64(4))
+   return bb
