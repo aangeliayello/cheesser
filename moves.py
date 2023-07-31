@@ -78,10 +78,46 @@ def get_legal_moves_from(piece, board, from_):
     if piece == Piece.PAWN:
         # TODO: Add en pasant
         if board.color_to_play == Color.WHITE:
-            moves = get_pawn_moves_white(sq.toBoard(), board.all_pieces) | get_pawn_attacks_white(sq.toBoard(), board.all_pieces_per_color[Color.BLACK])
+            simple_moves = get_pawn_moves_white(sq.toBoard(), board.all_pieces)
+            attack_moves = get_pawn_attacks_white(sq.toBoard(), board.all_pieces_per_color[Color.BLACK])
         else:
-            moves = get_pawn_moves_black(sq.toBoard(), board.all_pieces) | get_pawn_attacks_black(sq.toBoard(), board.all_pieces_per_color[Color.WHITE])
-        promotion_possible = bool(moves & Ranks[7*(1-board.color_to_play)])
+            simple_moves = get_pawn_moves_black(sq.toBoard(), board.all_pieces)
+            attack_moves = get_pawn_attacks_black(sq.toBoard(), board.all_pieces_per_color[Color.WHITE])
+            
+        start = 0
+        list_of_moves = []
+        while attack_moves:
+            right_bit_index = get_right_bit_index(attack_moves, start)
+            rbi_bb = Square(right_bit_index).toBoard()
+            start = right_bit_index + 1
+            
+            if promotion_possible and bool(rbi_bb & Ranks[7*(1-board.color_to_play)]):
+                list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.QUEEN))
+                list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.KNIGHT))
+                list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.ROOK))
+                list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.BISHOP))
+                
+            else:
+                list_of_moves.append(Move(piece, from_, right_bit_index))
+            attack_moves = attack_moves & ~rbi_bb
+        
+        start = 0
+        while simple_moves:
+            right_bit_index = get_right_bit_index(simple_moves, start)
+            rbi_bb = Square(right_bit_index).toBoard()
+            start = right_bit_index + 1
+            
+            if promotion_possible and bool(rbi_bb & Ranks[7*(1-board.color_to_play)]):
+                list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.QUEEN))
+                list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.KNIGHT))
+                list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.ROOK))
+                list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.BISHOP))
+                
+            else:
+                list_of_moves.append(Move(piece, from_, right_bit_index))
+            simple_moves = simple_moves & ~rbi_bb
+            
+        return list_of_moves
     elif piece == Piece.ROOK:
         moves = get_rook_moves(sq.toBoard(), board.all_pieces, board.all_pieces_per_color[board.color_to_play])
     elif piece == Piece.BISHOP:
@@ -100,15 +136,7 @@ def get_legal_moves_from(piece, board, from_):
         right_bit_index = get_right_bit_index(moves, start)
         rbi_bb = Square(right_bit_index).toBoard()
         start = right_bit_index + 1
-        
-        if promotion_possible and bool(rbi_bb & Ranks[7*(1-board.color_to_play)]):
-            list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.QUEEN))
-            list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.KNIGHT))
-            list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.ROOK))
-            list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.BISHOP))
-            
-        else:
-            list_of_moves.append(Move(piece, from_, right_bit_index))
+        list_of_moves.append(Move(piece, from_, right_bit_index))
         moves = moves & ~rbi_bb
 
     return list_of_moves
@@ -116,7 +144,7 @@ def get_legal_moves_from(piece, board, from_):
 
 def get_legal_moves(board):
     lms = []
-    for piece in Piece:
+    for piece in [Piece.KNIGHT, Piece.BISHOP, Piece.QUEEN, Piece.ROOK, Piece.PAWN, Piece.KING]:
         piece_bb = board.pieces[board.color_to_play][piece]
         start = 0
         while piece_bb:
@@ -127,10 +155,15 @@ def get_legal_moves(board):
     return lms
 
 def negamaxAB(board, alpha, beta, depth = 0, debug = False, debug_str = ""):
+    # [ALO-ZORBRIST] zorbrist makes everything too slow
+    # if board.hash_value in board.transposition_table and board.transposition_table[board.hash_value]['depth'] >= depth:
+    #     return board.transposition_table[board.hash_value]['move'], board.transposition_table[board.hash_value]['score']
+
     if depth < 1:
         if debug:
             print(debug_str, "Score: ", evaluate_board(board), "   ---   Board: \n", board)
         return evaluate_board(board)
+
     factor = - board.color_to_play * 2 + 1
     lms = get_legal_moves(board)
     maxScore = -9999999999
@@ -141,11 +174,15 @@ def negamaxAB(board, alpha, beta, depth = 0, debug = False, debug_str = ""):
         if score > maxScore:
             maxScore = score
             bestMove = m
-        alpha = max(alpha, score)
-        if alpha >= beta: break
+        if score > alpha:
+            alpha = score
+            if alpha >= beta: break
 
     if debug:
         print(debug_str, " ***! Score: ", maxScore, "   ---   Move: \n", bestMove, "   ---   Board: \n", board.move(bestMove))
+
+    # [ALO-ZORBRIST] zorbrist makes everything too slow
+    #board.add_to_transpotition_table(m, depth, factor*maxScore)
     return factor*maxScore
 
 def get_best_moveAB(board, depth = 1, debug = False, debug_str = ""):
@@ -155,6 +192,10 @@ def get_best_moveAB(board, depth = 1, debug = False, debug_str = ""):
     alpha = -99999999
     beta  =  99999999
 
+    # [ALO-ZORBRIST] zorbrist makes everything too slow
+    # if board.hash_value in board.transposition_table and board.transposition_table[board.hash_value]['depth'] >= depth:
+    #     return board.transposition_table[board.hash_value]['move'], board.transposition_table[board.hash_value]['score']
+
     for m in lms:
         if debug: print(debug_str, "Move: ", m)
         score = factor*negamaxAB(board.move(m), -beta, -alpha, depth - 1, debug, debug_str[0]*(len(debug_str) +2))
@@ -163,10 +204,23 @@ def get_best_moveAB(board, depth = 1, debug = False, debug_str = ""):
     index = np.argmax([m for m in lbs])
     if debug:
         print(debug_str, "Score: ", factor*lbs[index], "   ---   Move: ", lms[index])
-
+        
+    # [ALO-ZORBRIST] zorbrist makes everything too slow
+    #board.add_to_transpotition_table(lms[index], depth, lbs[index])
     return lms[index], lbs[index]
 
-# Legace - Good for testing
+def get_random_move(board, depth = 1, debug = False, debug_str = ""):
+    lms = get_legal_moves(board)
+    if lms:
+        index = random.randint(0, len(lms)-1)
+        return lms[index]
+    else:
+        return None
+
+#################################
+# Legacy - Good for testing
+#################################
+
 def negamax(board, depth = 0, debug = False, debug_str = ""):
     if depth < 1:
         if debug:
@@ -197,11 +251,3 @@ def get_best_move(board, depth = 1, debug = False, debug_str = ""):
         print(debug_str, "Score: ", factor*lbs[index], "   ---   Move: ", lms[index])
 
     return lms[index]
-
-def get_random_move(board, depth = 1, debug = False, debug_str = ""):
-    lms = get_legal_moves(board)
-    if lms:
-        index = random.randint(0, len(lms)-1)
-        return lms[index]
-    else:
-        return None

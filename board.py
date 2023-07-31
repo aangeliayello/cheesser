@@ -1,5 +1,7 @@
 import numpy as np
 from utils import *
+from hashing import ZOBRIST_TABLE
+from precalculations import SQUARE_TO_FILE
 
 class Board(object):
     def __init__(self):
@@ -10,6 +12,9 @@ class Board(object):
         self.en_passant_sqr = None
         self.castling_available = np.ones((2, 2), dtype=bool)
         self.board_history = ""
+        self.hash_value = None
+        self.transposition_table = {}
+
     def __str__(self):
         board = np.empty(64, dtype=str)
         board[:] = '_'
@@ -75,12 +80,18 @@ class Board(object):
         self.all_pieces = np.uint64(
             0b1111111111111111000000000000000000000000000000001111111111111111)
 
+        # [ALO-ZORBRIST] zorbrist makes everything too slow
+        #self.hash_value = self.zorbrist_hash()
+
     def move(self, m, score = None):
         board = Board()
         board.pieces = np.copy(self.pieces)
         board.all_pieces_per_color = np.copy(self.all_pieces_per_color)
         board.all_pieces = np.copy(self.all_pieces)
+        board.transposition_table = self.transposition_table.copy()
+
         board.color_to_play = self.color_to_play
+
         score_str= ""
         if score:
             score_str = "_(" + str(score) + ")"
@@ -152,7 +163,7 @@ class Board(object):
             board.pieces[board.color_to_play][Piece.ROOK] = board.pieces[board.color_to_play][Piece.ROOK] | Square(rook_to).toBoard()
         
         board.color_to_play = opposite_color
-
+        board.hash_value = board.zorbrist_hash()
         return board
 
     def from_printed_board(self, pboard, color_to_play):
@@ -178,3 +189,42 @@ class Board(object):
             self.pieces[piece_color][lettter_to_piece[letter.lower()]] |= Square(i).toBoard()
             self.all_pieces_per_color[piece_color] |= Square(i).toBoard()
             self.all_pieces |= Square(i).toBoard()
+
+    def zorbrist_hash(self):
+        zobrist_hash_number = np.uint64(0)
+
+        # PIECES
+        for color in Color:
+            for piece in Piece:
+                piece_bb = self.pieces[color][piece]
+                start = 0
+                while piece_bb:
+                    rsi = get_right_bit_index(piece_bb, start)
+                    zobrist_hash_number ^= ZOBRIST_TABLE[("Piece", color, piece, rsi)]
+                    piece_bb ^= Square(rsi).toBoard()
+                    start += 1
+
+
+        # SIDE TO MOVE
+        if self.color_to_play == Color.BLACK:
+            zobrist_hash_number ^= ZOBRIST_TABLE[("Color", Color.BLACK)]
+
+        # CASTLING
+        for color in Color:
+            for castling_side in CastleSide:
+                if self.castling_available[color][castling_side]:
+                    zobrist_hash_number ^= ZOBRIST_TABLE[("Caslting",  color, castling_side)]
+
+        if self.en_passant_sqr:
+            zobrist_hash_number ^= ZOBRIST_TABLE[("EnPassant", SQUARE_TO_FILE[self.en_passant_sqr])]
+
+        return zobrist_hash_number
+
+    def add_to_transpotition_table(self, move, depth, score):
+        if (self.hash_value not in self.transposition_table) or self.transposition_table[self.hash_value]['depth'] <= depth:
+            self.transposition_table[self.hash_value] = \
+                {
+                    "depth": depth,
+                    "move": move,
+                    "score": score
+                }

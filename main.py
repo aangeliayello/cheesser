@@ -53,16 +53,20 @@ if __name__ == "__main__" and True:
     b0 = Board()
     b0.base_board()
     print(b0)
-    for _ in range(1):
+    ss0 = time.time()
+    for _ in range(10):
         print('*************** Cheeser AB ******************')
         ss1 = time.time()
-        moveAB,score = get_best_moveAB(b0, 4, False, "-")
+        moveAB,score = get_best_moveAB(b0,3, False, "-")
         ee1 = time.time()
-        print(b0.color_to_play, moveAB, '  -  Took: ', round(ee1-ss1), 's')
+        print(b0.color_to_play, moveAB, '  -  Took: ', round(ee1-ss1,2), 's')
         print(b0.move(moveAB, score))
         b0 = b0.move(moveAB, score)
+    ee0 = time.time()
     print(b0.board_history)
+    print( ' Took: ', round(ee0-ss0,2), 's')
     random.seed(10)
+    
     # for foo in range(3):
     #     b0 = Board()
     #     b0.base_board()
