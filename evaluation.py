@@ -16,26 +16,17 @@ score_map = {
 def evaluate_board(board):
     score = 0
 
-    if board.color_to_play == Color.WHITE:
-        score += 0
-    else:
-        score -= 0
-
     # piece count
-    for color in Color:
-        if color == Color.WHITE: factor = 1
-        else: factor = -1
+    for piece in Piece:
 
-        for piece in Piece:
+        count = count_bits(board.pieces[Color.WHITE][piece]) - count_bits(board.pieces[Color.BLACK][piece])
 
-            count = count_bits(board.pieces[color][piece])
-
-            if piece != Piece.KING:
-                count0 = count_bits(board.pieces[color][piece] & ring0)
-                count1 = count_bits(board.pieces[color][piece] & ring1)
-            else:
-                count0 = 0
-                count1 = 0
-            score += (count + count0 * 0.005 + count1 * 0.001) * factor * score_map[piece]
+        if piece != Piece.KING:
+            count0 = count_bits(board.pieces[Color.WHITE][piece] & ring0) -  count_bits(board.pieces[Color.BLACK][piece] & ring0)
+            count1 = count_bits(board.pieces[Color.WHITE][piece] & ring1) -  count_bits(board.pieces[Color.BLACK][piece] & ring1)
+        else:
+            count0 = 0
+            count1 = 0
+        score += (count + count0 * 0.005 + count1 * 0.001) * score_map[piece]
 
     return score

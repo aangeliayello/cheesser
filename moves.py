@@ -175,13 +175,11 @@ def negamaxAB(board, alpha, beta, depth=0):
     factor = - board.color_to_play * 2 + 1
     lms = get_legal_moves(board)
     maxScore = -9999999999
-    bestMove = lms[0]  # TODO: stalemate
     for m in lms:
         score = factor * negamaxAB(board.move(m), -beta, -alpha, depth - 1)
 
         if score > maxScore:
             maxScore = score
-            bestMove = m
             if score > alpha:
                 alpha = score
                 if alpha >= beta: break
