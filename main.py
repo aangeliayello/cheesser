@@ -1,6 +1,6 @@
 import time
-from utils import Piece, CastleSide
-from moves import Move, get_best_moveAB, get_best_move, get_random_move
+from classes import Piece, CastleSide, Move
+from moves import get_best_moveAB, get_best_move, get_random_move
 from board import Board
 import random
 
@@ -12,7 +12,7 @@ def main():
     while True:
         print('*************** Cheeser AB ******************')
         ss1 = time.time()
-        moveAB,score = get_best_moveAB(b0, 3, False, "-")
+        moveAB,score = get_best_moveAB(b0, 4, False, "-")
         ee1 = time.time()
         print(b0.color_to_play, moveAB, '  -  Took: ', round(ee1-ss1), 's')
         print(b0.move(moveAB, score))
@@ -52,16 +52,28 @@ if __name__ == "__main__" and True:
     #main()
     b0 = Board()
     b0.base_board()
+
+    # pboard = [['r' 'n' 'b' 'q' 'k' 'b' '_' 'r'],
+    #          ['p' 'p' 'p' 'p' '_' 'p' 'p' 'p'],
+    #          ['_' '_' '_' '_' '_' '_' '_' '_'],
+    #          ['_' 'N' 'n' '_' 'p' '_' '_' '_'],
+    #          ['_' '_' '_' '_' '_' '_' '_' '_'],
+    #          ['_' '_' '_' 'P' 'B' 'N' '_' '_'],
+    #          ['P' 'P' 'P' '_' 'P' 'P' 'P' 'P'],
+    #          ['R' '_' '_' 'Q' 'K' 'B' '_' 'R']]
+    #
+    # b0.from_printed_board(pboard, utils.Color.BLACK)
     print(b0)
     ss0 = time.time()
-    for _ in range(10):
+    for _ in range(8):
         print('*************** Cheeser AB ******************')
         ss1 = time.time()
-        moveAB,score = get_best_moveAB(b0,3, False, "-")
+        moveAB,score = get_best_moveAB(b0, 3, False, "-")
         ee1 = time.time()
-        print(b0.color_to_play, moveAB, '  -  Took: ', round(ee1-ss1,2), 's')
+        print(b0.color_to_play, moveAB, '  -  Took: ', round(ee1-ss1,2), 's', " - Score ", score)
         print(b0.move(moveAB, score))
         b0 = b0.move(moveAB, score)
+
     ee0 = time.time()
     print(b0.board_history)
     print( ' Took: ', round(ee0-ss0,2), 's')

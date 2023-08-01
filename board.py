@@ -1,7 +1,7 @@
-import numpy as np
 from utils import *
 from hashing import ZOBRIST_TABLE
 from precalculations import SQUARE_TO_FILE
+from classes import Move, Square, Piece, Color, CastleSide
 
 class Board(object):
     def __init__(self):
@@ -81,7 +81,7 @@ class Board(object):
             0b1111111111111111000000000000000000000000000000001111111111111111)
 
         # [ALO-ZORBRIST] zorbrist makes everything too slow
-        #self.hash_value = self.zorbrist_hash()
+        #self.hash_value = self.zobrist_hash()
 
     def move(self, m, score = None):
         board = Board()
@@ -163,7 +163,7 @@ class Board(object):
             board.pieces[board.color_to_play][Piece.ROOK] = board.pieces[board.color_to_play][Piece.ROOK] | Square(rook_to).toBoard()
         
         board.color_to_play = opposite_color
-        board.hash_value = board.zorbrist_hash()
+        #board.hash_value = board.zobrist_hash()
         return board
 
     def from_printed_board(self, pboard, color_to_play):
@@ -190,7 +190,7 @@ class Board(object):
             self.all_pieces_per_color[piece_color] |= Square(i).toBoard()
             self.all_pieces |= Square(i).toBoard()
 
-    def zorbrist_hash(self):
+    def zobrist_hash(self):
         zobrist_hash_number = np.uint64(0)
 
         # PIECES
@@ -199,7 +199,7 @@ class Board(object):
                 piece_bb = self.pieces[color][piece]
                 start = 0
                 while piece_bb:
-                    rsi = get_right_bit_index(piece_bb, start)
+                    rsi = get_right_bit_index(piece_bb)
                     zobrist_hash_number ^= ZOBRIST_TABLE[("Piece", color, piece, rsi)]
                     piece_bb ^= Square(rsi).toBoard()
                     start += 1

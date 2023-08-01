@@ -1,6 +1,9 @@
 import os
 import pickle
-from utils import *
+import numpy as np
+from utils import mirror_bb_horizontal
+from classes import File, Square, Rank
+import classes
 
 def get_kingLike_moves(bb):
     w = (bb >> np.uint64(1)) & ~Files[File.H]
@@ -190,7 +193,7 @@ else:
         rank = i//8
         file_mask.append((sq_bb, Files[file]))
         rank_mask.append((sq_bb, Ranks[rank]))
-        square_to_file.append((i, File(file)))
+        square_to_file.append((i, classes.File(file)))
     FILE_MASK = dict(file_mask)
     RANK_MASK = dict(rank_mask)
     SQUARE_TO_FILE = dict(square_to_file)

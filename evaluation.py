@@ -1,18 +1,8 @@
-import numpy as np
 from utils import *
-
+from classes import Piece, Color
 # Center rings
 ring0 = np.uint64(0b0000000000000000000000000001100000011000000000000000000000000000)
 ring1 = np.uint64(0b0000000000000000001111000010010000100100001111000000000000000000)
-
-# Constants for population count black magic
-m1  = np.uint64(0x5555555555555555)
-m2  = np.uint64(0x3333333333333333)
-m4  = np.uint64(0x0f0f0f0f0f0f0f0f)
-m8  = np.uint64(0x00ff00ff00ff00ff)
-m16 = np.uint64(0x0000ffff0000ffff)
-m32 = np.uint64(0x00000000ffffffff)
-h01 = np.uint64(0x0101010101010101)
 
 score_map = {
     Piece.PAWN: 1000,
@@ -22,13 +12,6 @@ score_map = {
     Piece.QUEEN: 9000,
     Piece.KING: 999999999,
 }
-
-def count_bits(x):
-    x -= (x >> np.uint64(1)) & m1
-    x = (x & m2) + ((x >> np.uint64(2)) & m2)
-    x = (x + (x >> np.uint64(4))) & m4
-    c = (x * h01) >> np.uint64(56)
-    return c
 
 def evaluate_board(board):
     score = 0

@@ -1,84 +1,40 @@
 import numpy as np
-from enum import IntEnum
 
+# Constants for mirroring
 k1 = np.uint64(0x5555555555555555)
 k2 = np.uint64(0x3333333333333333)
 k4 = np.uint64(0x0f0f0f0f0f0f0f0f)
 
-class Square(object):
-    def __init__(self, index):
-        self.index = index
+# Constants for right/left significant bit
+debruij = np.uint64(0x03f79d71b4cb0a89)
+right_bit_map = np.array([
+    0,  1, 48,  2, 57, 49, 28,  3,
+   61, 58, 50, 42, 38, 29, 17,  4,
+   62, 55, 59, 36, 53, 51, 43, 22,
+   45, 39, 33, 30, 24, 18, 12,  5,
+   63, 47, 56, 27, 60, 41, 37, 16,
+   54, 35, 52, 21, 44, 32, 23, 11,
+   46, 26, 40, 15, 34, 20, 31, 10,
+   25, 14, 19,  9, 13,  8,  7,  6])
 
-    def toBoard(self):
-        return np.uint64(1) << np.uint64(self.index)
+left_bit_map = np.array([
+    0, 47, 1, 56, 48, 27, 2, 60,
+    57, 49, 41, 37, 28, 16, 3, 61,
+    54, 58, 35, 52, 50, 42, 21, 44,
+    38, 32, 29, 23, 17, 11, 4, 62,
+    46, 55, 26, 59, 40, 36, 15, 53,
+    34, 51, 20, 43, 31, 22, 10, 45,
+    25, 39, 14, 33, 19, 30, 9, 24,
+    13, 18, 8, 12, 7, 6, 5, 63])
 
-    def fromBoard(self):
-        None
-        
-class Color(IntEnum):
-    WHITE = 0
-    BLACK = 1
-
-    def flip(self):
-        if self == Color.WHITE:
-            return Color.BLACK
-        else:
-            return Color.WHITE
-
-class File(IntEnum):
-    A = 0
-    B = 1
-    C = 2
-    D = 3
-    E = 4
-    F = 5
-    G = 6
-    H = 7
-
-class Rank(IntEnum):
-    One = 0
-    Two = 1
-    Three = 2
-    Four = 3
-    Five = 4
-    Six = 5
-    Seven = 6
-    Eight = 7
-    
-class SpecialMoveType(IntEnum):
-    EnPassant = 0
-    QueenSideCastle = 1
-    KingSideCastle = 2
-    
-class CastleSide(IntEnum):
-    QueenSide = 0
-    KingSide = 1
-    
-class Piece(IntEnum):
-    PAWN = 0
-    KNIGHT = 1
-    BISHOP = 2
-    ROOK = 3
-    QUEEN = 4
-    KING = 5
-
-    def toChar(self, color=None):
-        if self == Piece.PAWN:
-            c = 'p'
-        elif self == Piece.KNIGHT:
-            c = 'n'
-        elif self == Piece.BISHOP:
-            c = 'b'
-        elif self == Piece.ROOK:
-            c = 'r'
-        elif self == Piece.QUEEN:
-            c = 'q'
-        elif self == Piece.KING:
-            c = 'k'
-
-        if color == Color.WHITE:
-            c = c.upper()
-        return c
+# Constants for population count black magic
+m1  = np.uint64(0x5555555555555555)
+m2  = np.uint64(0x3333333333333333)
+m4  = np.uint64(0x0f0f0f0f0f0f0f0f)
+m8  = np.uint64(0x00ff00ff00ff00ff)
+m16 = np.uint64(0x0000ffff0000ffff)
+m32 = np.uint64(0x00000000ffffffff)
+h01 = np.uint64(0x0101010101010101)
 
 def coordinate_to_index(coordinate):
     file = ord(coordinate[0].upper()) - ord('A')
@@ -86,35 +42,29 @@ def coordinate_to_index(coordinate):
 
     return file + rank * 8
 
-def get_right_bit_index(bb, start = 0):
-    power = np.uint64(1) << np.uint8(start)
+def count_bits(x):
+    x -= (x >> np.uint64(1)) & m1
+    x = (x & m2) + ((x >> np.uint64(2)) & m2)
+    x = (x + (x >> np.uint64(4))) & m4
+    c = (x * h01) >> np.uint64(56)
+    return c
 
-    for i in range(64-start):
-        if power & bb:
-            break
-        power = power << np.uint8(1)
-
-    return i+start
+def get_right_bit_index(bb):
+    return right_bit_map[((bb & -bb) * debruij) >> np.uint64(58)]
 
 def get_left_bit_index(bb):
-    power = np.uint64(2**63)
-    for i in range(64):
-        if power & bb:
-            break
-        power = power >> np.uint8(1)
-    return 63 - i
+    bb |= bb >> np.int64(1)
+    bb |= bb >> np.int64(2)
+    bb |= bb >> np.int64(4)
+    bb |= bb >> np.int64(8)
+    bb |= bb >> np.int64(16)
+    bb |= bb >> np.int64(32)
+    return left_bit_map[(bb * debruij) >> np.int64(58)]
 
 def index_to_coordinate(index):
     file = index % 8
     rank = index // 8
-
     return chr(ord('A') + file) + str(rank + 1)
-
-def getRank(bb):
-    get_right_bit_index(bb) % 8
-
-def getFile(bb):
-    get_right_bit_index(bb) // 8
 
 def printBb(bb):
     board = np.empty(64, dtype=str)

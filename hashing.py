@@ -1,5 +1,5 @@
 import random
-from utils import Color, Piece, CastleSide, File
+from classes import Color, Piece, CastleSide, File
 import numpy as np
 
 random.seed("notoes")
@@ -15,7 +15,7 @@ for sqr in range(64):
             zobrist_table.append([("Piece", color, piece, sqr), np.uint64(random.randint(LOWER_BOUND, UPPER_BOUND))])
 
 # SIDE TO MOVE
-zobrist_table.append([("Color",Color.BLACK), np.uint64(random.randint(LOWER_BOUND, UPPER_BOUND))])
+zobrist_table.append([("Color", Color.BLACK), np.uint64(random.randint(LOWER_BOUND, UPPER_BOUND))])
 
 # CASTLING
 for color in Color:
