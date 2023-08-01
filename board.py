@@ -94,7 +94,7 @@ class Board(object):
 
         score_str= ""
         if score:
-            score_str = "_(" + str(score) + ")"
+            score_str = "_(" + str(round(score, 3)) + ")"
         event = "[" + self.color_to_play.name + "_" + m.piece.name + "_" + str(m.from_) + "_" + str(m.to) + score_str + "]"
         board.board_history = self.board_history + event
 

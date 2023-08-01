@@ -19,11 +19,11 @@ def evaluate_board(board):
     # piece count
     for piece in Piece:
 
-        count = count_bits(board.pieces[Color.WHITE][piece]) - count_bits(board.pieces[Color.BLACK][piece])
+        count = int(count_bits(board.pieces[Color.WHITE][piece])) - int(count_bits(board.pieces[Color.BLACK][piece]))
 
         if piece != Piece.KING:
-            count0 = count_bits(board.pieces[Color.WHITE][piece] & ring0) -  count_bits(board.pieces[Color.BLACK][piece] & ring0)
-            count1 = count_bits(board.pieces[Color.WHITE][piece] & ring1) -  count_bits(board.pieces[Color.BLACK][piece] & ring1)
+            count0 = int(count_bits(board.pieces[Color.WHITE][piece] & ring0)) -  int(count_bits(board.pieces[Color.BLACK][piece] & ring0))
+            count1 = int(count_bits(board.pieces[Color.WHITE][piece] & ring1)) -  int(count_bits(board.pieces[Color.BLACK][piece] & ring1))
         else:
             count0 = 0
             count1 = 0
