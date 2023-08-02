@@ -12,6 +12,7 @@ p/q2-q4!
 
      Game Play:
      - update incentive heatmap
+     - bot keeps computing while human thinks
      
      Speed:
      - Pre calculate tables
