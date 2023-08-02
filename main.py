@@ -1,18 +1,19 @@
 import time
 from classes import Piece, CastleSide, Move
 from moves import get_best_moveAB, get_best_move, get_random_move
-from board import Board
+from board import Board, Color
 import random
 
 def main():
-    humanPlaying = False
+    humanPlaying = True
     b0 = Board()
     b0.base_board()
     print(b0)
+
     while True:
         print('*************** Cheeser AB ******************')
         ss1 = time.time()
-        moveAB,score = get_best_moveAB(b0, 4, False, "-")
+        moveAB,score = get_best_moveAB(b0, 4)
         ee1 = time.time()
         print(b0.color_to_play, moveAB, '  -  Took: ', round(ee1-ss1), 's')
         print(b0.move(moveAB, score))
@@ -49,20 +50,4 @@ def main():
                     print("Let's try again!")
 
 if __name__ == "__main__":
-    #main()
-    b0 = Board()
-    b0.base_board()
-
-
-    print(b0)
-    ss0 = time.time()
-    for _ in range(10):
-        print('*************** Cheeser AB ******************')
-        ss1 = time.time()
-        moveAB,score = get_best_moveAB(b0, 3)
-        ee1 = time.time()
-        print(b0.color_to_play, moveAB, '  -  Took: ', round(ee1-ss1), 's')
-        print(b0.move(moveAB, score))
-        b0 = b0.move(moveAB, score)
-    ee0 = time.time()
-    print( ' Took: ', round(ee0-ss0,2), 's')
+    main()
