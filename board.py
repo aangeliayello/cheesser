@@ -2,6 +2,8 @@ from utils import *
 from hashing import ZOBRIST_TABLE
 from precalculations import SQUARE_TO_FILE
 from classes import Move, Square, Piece, Color, CastleSide
+from piece_heatmap import piece_to_value
+from evaluation import evaluate_board, board_evaluation_move_correction
 
 class Board(object):
     def __init__(self):
@@ -14,6 +16,7 @@ class Board(object):
         self.board_history = ""
         self.hash_value = None
         self.transposition_table = {}
+        self.eval = 0
 
     def __str__(self):
         board = np.empty(64, dtype=str)
@@ -80,6 +83,7 @@ class Board(object):
         self.all_pieces = np.uint64(
             0b1111111111111111000000000000000000000000000000001111111111111111)
 
+        self.eval = evaluate_board(self)
         # [ALO-ZORBRIST] zorbrist makes everything too slow
         #self.hash_value = self.zobrist_hash()
 
@@ -89,7 +93,6 @@ class Board(object):
         board.all_pieces_per_color = np.copy(self.all_pieces_per_color)
         board.all_pieces = np.copy(self.all_pieces)
         board.transposition_table = self.transposition_table.copy()
-
         board.color_to_play = self.color_to_play
 
         score_str= ""
@@ -123,7 +126,9 @@ class Board(object):
                 board.pieces[opposite_color][piece] = board.pieces[opposite_color][piece] & ~bb_to
             board.all_pieces_per_color[opposite_color] = board.all_pieces_per_color[opposite_color] & ~bb_to
 
+        delta_castling_rights = 0
         if m.piece == Piece.KING:
+            delta_castling_rights = -self.castling_available[board.color_to_play].sum()
             board.castling_available[board.color_to_play][:] = False
             
         if  (m.piece == Piece.ROOK):
@@ -131,7 +136,7 @@ class Board(object):
                 board.castling_available[board.color_to_play][CastleSide.QueenSide] = m.from_ != 56*board.color_to_play
             elif board.castling_available[board.color_to_play][CastleSide.KingSide]:
                 board.castling_available[board.color_to_play][CastleSide.KingSide] = m.from_ != 7+56*board.color_to_play
-            
+            delta_castling_rights = board.castling_available[board.color_to_play].sum() - self.castling_available[board.color_to_play].sum()
         # En Passant Capture
         if m.en_passant:
             if board.color_to_play == Color.WHITE:
@@ -148,14 +153,15 @@ class Board(object):
             # add promotion piece          
             board.pieces[board.color_to_play][m.promotion] = board.pieces[board.color_to_play][m.promotion] | bb_to
 
-        if m.castleSide: # No need to take care of the King, since already the from_-to move it 
+        if m.castleSide: # No need to take care of the King, since already the from_-to move it
+            #TODO: consider captures of the rook, which would also null out the castling  
             if board.color_to_play == Color.WHITE:
-                rook_from = Square(0 if m.casleSide == CastleSide.QueenSide else 7)
-                rook_to   = Square(3 if m.casleSide == CastleSide.QueenSide else 5)
+                rook_from = Square(0 if m.castleSide == CastleSide.QueenSide else 7)
+                rook_to   = Square(3 if m.castleSide == CastleSide.QueenSide else 5)
                 
             else: 
-                rook_from = Square(56 if m.casleSide == CastleSide.QueenSide else 63)
-                rook_to   = Square(59 if m.casleSide == CastleSide.QueenSide else 61)
+                rook_from = Square(56 if m.castleSide == CastleSide.QueenSide else 63)
+                rook_to   = Square(59 if m.castleSide == CastleSide.QueenSide else 61)
                 
             # Clear rook initial possition (m.to)
             board.pieces[board.color_to_play][Piece.ROOK] = board.pieces[board.color_to_play][Piece.ROOK] & ~ Square(rook_from).toBoard() 
@@ -163,6 +169,10 @@ class Board(object):
             board.pieces[board.color_to_play][Piece.ROOK] = board.pieces[board.color_to_play][Piece.ROOK] | Square(rook_to).toBoard()
         
         board.color_to_play = opposite_color
+        board.eval += self.eval + board_evaluation_move_correction(self.color_to_play, \
+                                                        self.all_pieces_per_color[self.color_to_play.flip()], \
+                                                        self.pieces[self.color_to_play.flip()], \
+                                                        m, delta_castling_rights)
         #board.hash_value = board.zobrist_hash()
         return board
 
@@ -228,3 +238,8 @@ class Board(object):
                     "move": move,
                     "score": score
                 }
+
+
+
+
+

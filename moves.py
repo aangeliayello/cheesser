@@ -170,7 +170,7 @@ def negamaxAB(board, alpha, beta, depth=0):
     #     return board.transposition_table[board.hash_value]['move'], board.transposition_table[board.hash_value]['score']
 
     if depth < 1:
-        return evaluate_board(board)
+        return board.eval
 
     factor = - board.color_to_play * 2 + 1
     lms = get_legal_moves(board)
@@ -208,8 +208,7 @@ def get_best_moveAB(board, depth=1):
     
     # [ALO-ZORBRIST] zorbrist makes everything too slow
     # board.add_to_transpotition_table(lms[index], depth, lbs[index])
-    return lms[index], lbs[index]
-
+    return lms[index], factor*lbs[index]
 
 def get_random_move(board, depth=1, debug=False, debug_str=""):
     lms = get_legal_moves(board)

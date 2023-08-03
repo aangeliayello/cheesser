@@ -1,4 +1,5 @@
 import numpy as np
+from classes import CastleSide, Color
 
 # Constants for mirroring
 k1 = np.uint64(0x5555555555555555)
@@ -83,3 +84,12 @@ def mirror_bb_horizontal(bb):
    bb = ((bb >> np.uint64(2)) & k2) | ((bb & k2) << np.uint64(2))
    bb = ((bb >> np.uint64(4)) & k4) | ((bb & k4) << np.uint64(4))
    return bb
+
+def castling_rook_move(color: Color, castling_side: CastleSide):
+    if color == Color.WHITE:
+            rook_from = 0 if castling_side == CastleSide.QueenSide else 7
+            rook_to = 3 if castling_side == CastleSide.QueenSide else 5
+    else:
+        rook_from = 56 if castling_side == CastleSide.QueenSide else 63
+        rook_to = 59 if castling_side == CastleSide.QueenSide else 61
+    return rook_from, rook_to
