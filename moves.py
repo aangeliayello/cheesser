@@ -5,7 +5,8 @@ from evaluation import evaluate_board
 from precalculations import Files, Ranks, KING_MOVES, KNIGHT_MOVES, FILE_MOVES, RANK_MOVES, FILE_MASK, RANK_MASK, \
     DIAGONAL_MOVES, DIAGONAL_MASK, ANTI_DIAGONAL_MOVES, ANTI_DIAGONAL_MASK, BLACK_PAWN_ATTACK_MOVES, BLACK_PAWN_MOVES, \
     WHITE_PAWN_ATTACK_MOVES, WHITE_PAWN_MOVES
-from classes import Move, Square, Piece, Color
+from board import Board
+from classes import Move, Square, Piece, Color, CastleSide
 
 
 def get_king_moves(bb):
@@ -77,11 +78,39 @@ def get_pawn_moves_black(bb, occupancy):
     clean_occupancy = occupancy & FILE_MASK[bb]
     return BLACK_PAWN_MOVES[(bb, clean_occupancy)]
 
+def king_in_check(king_sq, board):
+    king_bb = Square(king_sq).toBoard()
+    opposite_color = board.color_to_play.flip()
+    opposite_pieces= board.piece[opposite_color]
+
+    if get_knight_moves(king_bb) & opposite_pieces[Piece.KNIGHT]:
+        return True
+
+    if (get_bishop_move(king_bb, board.all_pieces) & (opposite_pieces[Piece.QUEEN] | opposite_pieces[Piece.BISHOP])):
+        return True
+
+    if (get_rook_moves(king_bb, board.all_pieces) & (opposite_pieces[Piece.QUEEN] | opposite_pieces[Piece.BISHOP])):
+        return True
+
+    pawn_attacks = get_pawn_attacks_white(king_bb, opposite_pieces[Piece.PAWN]) if board.color_to_play == Color.WHITE else get_pawn_attacks_black(king_bb, opposite_pieces[Piece.PAWN])
+    if pawn_attacks:
+        return True
+
+    if get_king_moves(king_bb) & opposite_pieces[Piece.KING]:
+        return True
+
+    return False
 
 def get_legal_moves_from(piece, board, from_):
     sq_bb = Square(from_).toBoard()
+    list_of_moves = []
     if piece == Piece.PAWN:
-        # TODO: Add en pasant
+        if board.en_passant_sqr:
+            en_passant_bb = Square(board.en_passant_sqrassant_bb).toBoard()
+            en_passant_attacks = get_pawn_attacks_white(sq_bb, en_passant_bb)
+            if en_passant_attacks:
+                list_of_moves.append(Move(piece, from_, board.en_passant_sqr, en_passant=True))
+
         if board.color_to_play == Color.WHITE:
             simple_moves = get_pawn_moves_white(sq_bb, board.all_pieces)
             attack_moves = get_pawn_attacks_white(sq_bb, board.all_pieces_per_color[Color.BLACK])
@@ -104,11 +133,9 @@ def get_legal_moves_from(piece, board, from_):
                 list_of_moves.append(Move(piece, from_, right_bit_index))
             attack_moves = attack_moves & ~rbi_bb
 
-        start = 0
         while simple_moves:
             right_bit_index = get_right_bit_index(simple_moves)
             rbi_bb = Square(right_bit_index).toBoard()
-            start = right_bit_index + 1
 
             if bool(rbi_bb & Ranks[7 * (1 - board.color_to_play)]):
                 list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.QUEEN))
@@ -129,11 +156,17 @@ def get_legal_moves_from(piece, board, from_):
     elif piece == Piece.QUEEN:
         moves = get_queen_move(sq_bb, board.all_pieces, board.all_pieces_per_color[board.color_to_play])
     elif piece == Piece.KING:
-        # TODO: Add castling
         moves = get_king_moves(sq_bb) & ~ board.all_pieces_per_color[board.color_to_play]
+        # check if castling is allowed
+        king_bb = Square(from_).toBoard()
+        is_king_in_check = king_in_check(king_bb, board)
+        if not is_king_in_check:
+            if board.castling_available[board.color_to_play][CastleSide.KingSide] and (not king_in_check(Square(from_ +1).toBoard(), board)) and (not king_in_check(Square(from_ +2).toBoard(), board)):
+                # check if squares are attacked
+                list_of_moves.append(Move(from_, from_ + 2, castleSide=CastleSide.KingSide))
+            if board.castling_available[board.color_to_play][CastleSide.QueenSide] and (not king_in_check(Square(from_ -1).toBoard(), board)) and (not king_in_check(Square(from_ -2).toBoard(), board)):
+                list_of_moves.append(Move(from_, from_ - 2, castleSide=CastleSide.KingSide))
 
-    start = 0
-    list_of_moves = []
     while moves:
         right_bit_index = get_right_bit_index(moves)
         rbi_bb = Square(right_bit_index).toBoard()
@@ -142,11 +175,11 @@ def get_legal_moves_from(piece, board, from_):
 
     return list_of_moves
 
-
 def get_legal_moves(board):
     lms = []
     for piece in [Piece.KNIGHT, Piece.BISHOP, Piece.QUEEN, Piece.ROOK, Piece.PAWN, Piece.KING]:
         piece_bb = board.pieces[board.color_to_play][piece]
+        start = 0
         while piece_bb:
             right_bit_index = get_right_bit_index(piece_bb)
             lms += get_legal_moves_from(piece, board, right_bit_index)
@@ -216,6 +249,46 @@ def get_random_move(board, depth=1, debug=False, debug_str=""):
         return lms[index]
     else:
         return None
+
+#################################
+# Parallel implementation
+#################################
+from multiprocessing import Pool, cpu_count
+
+def evaluate_move(args):
+    board, move, depth, factor, alpha, beta = args
+    score = factor * negamaxAB_parallel(board.move(move), -beta, -alpha, depth - 1)
+    return move, score
+
+def negamaxAB_parallel(board, alpha, beta, depth=0):
+    if depth < 1:
+        return board.eval
+
+    factor = -board.color_to_play * 2 + 1
+    lms = get_legal_moves(board)
+
+    with Pool(cpu_count()) as pool:
+        args_list = [(board, move, depth, factor, -beta, -alpha) for move in lms]
+        results = pool.map(evaluate_move, args_list)
+
+    maxScore = max(results, key=lambda x: x[1])[1]
+    if maxScore > alpha:
+        alpha = maxScore
+        if alpha >= beta:
+            return factor * maxScore
+
+    return factor * maxScore
+
+def get_best_moveAB_parallel(board, depth=1):
+    factor = -board.color_to_play * 2 + 1
+    lms = get_legal_moves(board)
+
+    with Pool(cpu_count()) as pool:
+        args_list = [(board, move, depth, factor, -99999999, 99999999) for move in lms]
+        results = pool.map(evaluate_move, args_list)
+
+    best_move, best_score = max(results, key=lambda x: x[1])
+    return best_move, best_score
 
 
 #################################
