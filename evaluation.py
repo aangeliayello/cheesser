@@ -46,12 +46,12 @@ def board_evaluation_move_correction(color: Color, oppo_all_pieces: np.uint64, o
 
     # check if capture
     en_passant_capture_value = 0
+    opposite_color = color.flip()
     if move.en_passant:
         captured_pawn_sqr = move.to + (-8 if color == Color.WHITE else +8)
         en_passant_capture_value = piece_to_value(opposite_color, Piece.PAWN, captured_pawn_sqr)
         
     to_bb = Square(move.to).toBoard()
-    opposite_color = color.flip()
     capture_value = 0
     if oppo_all_pieces & to_bb:
         to_bb = Square(move.to).toBoard()
@@ -66,7 +66,7 @@ def board_evaluation_move_correction(color: Color, oppo_all_pieces: np.uint64, o
         rook_castle_value = rook_to_score - rook_from_score
     
     delta_castling_rights_value = 0
-    if delta_castling_rights: # negative if it lost rigthts
+    if False and delta_castling_rights: # negative if it lost rigthts
         delta_castling_rights_value = delta_castling_rights*500*(-1 if color == Color.BLACK else 1)
         
     return (to_value - from_value) - en_passant_capture_value - capture_value + rook_castle_value + delta_castling_rights_value

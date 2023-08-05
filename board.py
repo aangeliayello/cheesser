@@ -164,9 +164,9 @@ class Board(object):
                 rook_to   = Square(59 if m.castleSide == CastleSide.QueenSide else 61)
                 
             # Clear rook initial possition (m.to)
-            board.pieces[board.color_to_play][Piece.ROOK] = board.pieces[board.color_to_play][Piece.ROOK] & ~ Square(rook_from).toBoard() 
+            board.pieces[board.color_to_play][Piece.ROOK] = board.pieces[board.color_to_play][Piece.ROOK] & ~ rook_from.toBoard()
             # Add rook in King initial possit
-            board.pieces[board.color_to_play][Piece.ROOK] = board.pieces[board.color_to_play][Piece.ROOK] | Square(rook_to).toBoard()
+            board.pieces[board.color_to_play][Piece.ROOK] = board.pieces[board.color_to_play][Piece.ROOK] | rook_to.toBoard()
         
         board.color_to_play = opposite_color
         board.eval += self.eval + board_evaluation_move_correction(self.color_to_play, \

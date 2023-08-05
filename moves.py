@@ -147,7 +147,6 @@ def get_legal_moves(board):
     lms = []
     for piece in [Piece.KNIGHT, Piece.BISHOP, Piece.QUEEN, Piece.ROOK, Piece.PAWN, Piece.KING]:
         piece_bb = board.pieces[board.color_to_play][piece]
-        start = 0
         while piece_bb:
             right_bit_index = get_right_bit_index(piece_bb)
             lms += get_legal_moves_from(piece, board, right_bit_index)

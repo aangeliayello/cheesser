@@ -11,7 +11,10 @@ class Move(object):
         self.castleSide = castleSide
 
     def __str__(self):
-        return self.piece.name + ": " + "(" + str(self.from_) + ", " + str(self.to) + ")"
+        castle_str = ''
+        if self.castleSide:
+            castle_str = ", " + self.castleSide.name
+        return self.piece.name + ": " + "(" + str(self.from_) + ", " + str(self.to) + castle_str + ")"
 
 SQUARE_TO_BOARD = dict([(i, np.uint64(1) << np.uint64(i)) for i in range(64)])
 class Square(object):

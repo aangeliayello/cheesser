@@ -1,0 +1,78 @@
+import numpy as np
+from board import Board
+from classes import Color
+from moves import get_best_moveAB
+
+# KingSide White Castle
+pboard = [['_' '_' '_' '_' '_' '_' '_' '_'],
+          ['p' 'p' 'p' 'p' 'p' 'p' 'p' 'p'],
+          ['_' '_' '_' '_' '_' '_' '_' '_'],
+          ['_' 'p' '_' '_' '_' '_' '_' '_'],
+          ['_' 'P' '_' '_' '_' '_' '_' '_'],
+          ['B' 'p' '_' '_' '_' '_' '_' 'p'],
+          ['p' 'P' '_' '_' '_' '_' '_' 'P'],
+          ['k' '_' '_' '_' 'K' '_' '_' 'R']]
+
+color_to_play = Color.WHITE
+castling_available = np.array([[True, True], 
+                               [True, True]])
+board = Board()
+board.from_printed_board(pboard, color_to_play)
+board.castling_available = castling_available = np.array([[True, True], 
+                               [True, True]])
+castling_king_side_white1, _ = get_best_moveAB(board, 1)
+castling_king_side_white2, _ = get_best_moveAB(board, 2)
+castling_king_side_white3, _ = get_best_moveAB(board, 3)
+print(castling_king_side_white1)
+print(castling_king_side_white2)
+print(castling_king_side_white3)
+
+# QueenSide White Castle
+pboard = [['_' '_' '_' '_' '_' '_' '_' '_'],
+          ['p' 'p' 'p' 'p' 'p' 'p' 'p' 'p'],
+          ['_' '_' '_' '_' '_' '_' '_' '_'],
+          ['_' '_' '_' '_' '_' '_' '_' '_'],
+          ['_' '_' '_' '_' '_' '_' '_' '_'],
+          ['R' 'R' '_' '_' '_' 'R' 'R' 'R'],
+          ['P' 'P' 'P' '_' '_' 'P' 'P' 'P'],
+          ['R' '_' '_' '_' 'K' '_' '_' 'k']]
+
+color_to_play = Color.WHITE
+castling_available = np.array([[True, True], 
+                               [True, True]])
+board = Board()
+board.from_printed_board(pboard, color_to_play)
+board.castling_available = castling_available = np.array([[True, True], 
+                               [True, True]])
+
+# QueenSide Black Castle
+pboard = [['r' '_' '_' '_' 'k' '_' '_' 'K'],
+          ['p' 'p' 'p' 'p' '_' 'p' 'p' 'p'],
+          ['_' '_' '_' '_' '_' 'r' 'r' 'r'],
+          ['_' '_' '_' '_' '_' '_' '_' '_'],
+          ['_' '_' '_' '_' '_' '_' '_' '_'],
+          ['_' '_' '_' '_' '_' '_' '_' '_'],
+          ['P' 'P' 'P' '_' '_' 'P' 'P' 'P'],
+          ['R' '_' '_' '_' '_' '_' '_' '_']]
+
+color_to_play = Color.BLACK
+castling_rights = np.array([[True, True], 
+                            [True, True]])
+
+# QueenSide Black Castle
+pboard = [['r' '_' '_' '_' 'k' '_' '_' 'K'],
+          ['p' 'p' 'p' 'p' 'p' 'p' 'p' 'p'],
+          ['_' '_' '_' '_' '_' 'r' 'r' 'r'],
+          ['_' '_' '_' '_' '_' '_' '_' '_'],
+          ['_' '_' '_' '_' '_' '_' '_' '_'],
+          ['_' '_' '_' '_' '_' '_' '_' '_'],
+          ['P' 'P' 'P' '_' '_' 'P' 'P' 'P'],
+          ['R' '_' '_' '_' '_' '_' '_' '_']]
+
+color_to_play = Color.BLACK
+castling_available = np.array([[True, True], 
+                               [True, True]])
+board = Board()
+board.from_printed_board(pboard, color_to_play)
+board.castling_available = castling_available = np.array([[True, True], 
+                               [True, True]])
