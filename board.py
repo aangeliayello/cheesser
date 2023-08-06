@@ -92,6 +92,7 @@ class Board(object):
         board.pieces = np.copy(self.pieces)
         board.all_pieces_per_color = np.copy(self.all_pieces_per_color)
         board.all_pieces = np.copy(self.all_pieces)
+        board.castling_available = np.copy(self.castling_available)
         board.transposition_table = self.transposition_table.copy()
         board.color_to_play = self.color_to_play
 
@@ -131,7 +132,7 @@ class Board(object):
             delta_castling_rights = -self.castling_available[board.color_to_play].sum()
             board.castling_available[board.color_to_play][:] = False
             
-        if  (m.piece == Piece.ROOK):
+        if (m.piece == Piece.ROOK):
             if board.castling_available[board.color_to_play][CastleSide.QueenSide]:
                 board.castling_available[board.color_to_play][CastleSide.QueenSide] = m.from_ != 56*board.color_to_play
             elif board.castling_available[board.color_to_play][CastleSide.KingSide]:
@@ -147,13 +148,13 @@ class Board(object):
             board.all_pieces_per_color[opposite_color] = board.all_pieces_per_color[opposite_color] & ~capture_sqr
             
         # Promotion of Pawn
-        if m.promotion:
+        if m.promotion is not None:
             # clear pawn 
             board.pieces[board.color_to_play][Piece.PAWN] = board.pieces[board.color_to_play][Piece.PAWN] & ~bb_to  
             # add promotion piece          
             board.pieces[board.color_to_play][m.promotion] = board.pieces[board.color_to_play][m.promotion] | bb_to
 
-        if m.castleSide: # No need to take care of the King, since already the from_-to move it
+        if m.castleSide is not None: # No need to take care of the King, since already the from_-to move it
             #TODO: consider captures of the rook, which would also null out the castling  
             if board.color_to_play == Color.WHITE:
                 rook_from = Square(0 if m.castleSide == CastleSide.QueenSide else 7)
@@ -164,10 +165,17 @@ class Board(object):
                 rook_to   = Square(59 if m.castleSide == CastleSide.QueenSide else 61)
                 
             # Clear rook initial possition (m.to)
-            board.pieces[board.color_to_play][Piece.ROOK] = board.pieces[board.color_to_play][Piece.ROOK] & ~ rook_from.toBoard()
+            rook_from_bb_inv = ~ rook_from.toBoard()
+            board.pieces[board.color_to_play][Piece.ROOK] &= rook_from_bb_inv
+            board.all_pieces_per_color[board.color_to_play] &= rook_from_bb_inv
+            board.all_pieces &= rook_from_bb_inv
+            
             # Add rook in King initial possit
-            board.pieces[board.color_to_play][Piece.ROOK] = board.pieces[board.color_to_play][Piece.ROOK] | rook_to.toBoard()
-        
+            rook_to_bb = rook_to.toBoard()
+            board.pieces[board.color_to_play][Piece.ROOK] |= rook_to_bb
+            board.all_pieces_per_color[board.color_to_play] |=  rook_to_bb
+            board.all_pieces |=  rook_to_bb
+            
         board.color_to_play = opposite_color
         board.eval += self.eval + board_evaluation_move_correction(self.color_to_play, \
                                                         self.all_pieces_per_color[self.color_to_play.flip()], \

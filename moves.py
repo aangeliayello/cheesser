@@ -1,4 +1,5 @@
 import random
+import itertools
 from utils import count_bits, get_right_bit_index
 import numpy as np
 from evaluation import evaluate_board
@@ -78,25 +79,44 @@ def get_pawn_moves_black(bb, occupancy):
     clean_occupancy = occupancy & FILE_MASK[bb]
     return BLACK_PAWN_MOVES[(bb, clean_occupancy)]
 
-def king_in_check(king_sq, board):
-    king_bb = Square(king_sq).toBoard()
-    opposite_color = board.color_to_play.flip()
-    opposite_pieces= board.piece[opposite_color]
+def king_in_check(board: Board, from_color_to_play_perspective = True):
+    if from_color_to_play_perspective: 
+        current_color = board.color_to_play        
+    else: 
+        current_color = board.color_to_play.flip()
+        
+    king_bb = board.pieces[current_color][Piece.KING]
+    
+    return is_square_attacked(king_bb, board, from_color_to_play_perspective)
 
-    if get_knight_moves(king_bb) & opposite_pieces[Piece.KNIGHT]:
+def is_square_attacked(sq_bb, board: Board, from_color_to_play_perspective = True):
+    # assume the king is the attacking piece, then if it can attack the respective pieces then the king is attacked.
+    
+    if from_color_to_play_perspective: 
+        current_color = board.color_to_play
+        opposite_color = current_color.flip()
+        
+    else: 
+        opposite_color = board.color_to_play
+        current_color = opposite_color.flip()
+        
+    opposite_pieces= board.pieces[opposite_color]
+    sq_bb = board.pieces[current_color][Piece.KING]
+
+    if get_knight_moves(sq_bb) & opposite_pieces[Piece.KNIGHT]:
         return True
 
-    if (get_bishop_move(king_bb, board.all_pieces) & (opposite_pieces[Piece.QUEEN] | opposite_pieces[Piece.BISHOP])):
+    if (get_bishop_move(sq_bb, board.all_pieces, board.all_pieces_per_color[current_color]) & (opposite_pieces[Piece.QUEEN] | opposite_pieces[Piece.BISHOP])):
         return True
 
-    if (get_rook_moves(king_bb, board.all_pieces) & (opposite_pieces[Piece.QUEEN] | opposite_pieces[Piece.BISHOP])):
+    if (get_rook_moves(sq_bb, board.all_pieces, board.all_pieces_per_color[current_color]) & (opposite_pieces[Piece.QUEEN] | opposite_pieces[Piece.ROOK])):
         return True
 
-    pawn_attacks = get_pawn_attacks_white(king_bb, opposite_pieces[Piece.PAWN]) if board.color_to_play == Color.WHITE else get_pawn_attacks_black(king_bb, opposite_pieces[Piece.PAWN])
+    pawn_attacks = get_pawn_attacks_white(sq_bb, opposite_pieces[Piece.PAWN]) if current_color == Color.WHITE else get_pawn_attacks_black(sq_bb, opposite_pieces[Piece.PAWN])
     if pawn_attacks:
         return True
 
-    if get_king_moves(king_bb) & opposite_pieces[Piece.KING]:
+    if get_king_moves(sq_bb) & opposite_pieces[Piece.KING]:
         return True
 
     return False
@@ -106,7 +126,7 @@ def get_legal_moves_from(piece, board, from_):
     list_of_moves = []
     if piece == Piece.PAWN:
         if board.en_passant_sqr:
-            en_passant_bb = Square(board.en_passant_sqrassant_bb).toBoard()
+            en_passant_bb = Square(board.en_passant_sqr).toBoard()
             en_passant_attacks = get_pawn_attacks_white(sq_bb, en_passant_bb)
             if en_passant_attacks:
                 list_of_moves.append(Move(piece, from_, board.en_passant_sqr, en_passant=True))
@@ -158,14 +178,23 @@ def get_legal_moves_from(piece, board, from_):
     elif piece == Piece.KING:
         moves = get_king_moves(sq_bb) & ~ board.all_pieces_per_color[board.color_to_play]
         # check if castling is allowed
-        king_bb = Square(from_).toBoard()
-        is_king_in_check = king_in_check(king_bb, board)
-        if not is_king_in_check:
-            if board.castling_available[board.color_to_play][CastleSide.KingSide] and (not king_in_check(Square(from_ +1).toBoard(), board)) and (not king_in_check(Square(from_ +2).toBoard(), board)):
+        king_side_allowed = (board.castling_available[board.color_to_play][CastleSide.KingSide] and \
+            (board.all_pieces & np.uint8(96) == 0))
+        queen_side_allowed = (board.castling_available[board.color_to_play][CastleSide.QueenSide] and \
+            (board.all_pieces & np.uint8(14) == 0))
+        if king_side_allowed and queen_side_allowed:
+            is_king_in_check = king_in_check(board)
+            if king_side_allowed and \
+                (not is_king_in_check) and \
+                (not is_square_attacked(Square(from_ +1).toBoard(), board)) and \
+                (not is_square_attacked(Square(from_ +2).toBoard(), board)):
                 # check if squares are attacked
-                list_of_moves.append(Move(from_, from_ + 2, castleSide=CastleSide.KingSide))
-            if board.castling_available[board.color_to_play][CastleSide.QueenSide] and (not king_in_check(Square(from_ -1).toBoard(), board)) and (not king_in_check(Square(from_ -2).toBoard(), board)):
-                list_of_moves.append(Move(from_, from_ - 2, castleSide=CastleSide.KingSide))
+                list_of_moves.append(Move(Piece.KING, from_, from_ + 2, castleSide=CastleSide.KingSide))
+            if queen_side_allowed and \
+                (not is_king_in_check) and \
+                (not is_square_attacked(Square(from_ -1).toBoard(), board)) and \
+                (not is_square_attacked(Square(from_ -2).toBoard(), board)):
+                list_of_moves.append(Move(Piece.KING, from_, from_ - 2, castleSide=CastleSide.QueenSide))
 
     while moves:
         right_bit_index = get_right_bit_index(moves)
@@ -179,13 +208,12 @@ def get_legal_moves(board):
     lms = []
     for piece in [Piece.KNIGHT, Piece.BISHOP, Piece.QUEEN, Piece.ROOK, Piece.PAWN, Piece.KING]:
         piece_bb = board.pieces[board.color_to_play][piece]
-        start = 0
         while piece_bb:
             right_bit_index = get_right_bit_index(piece_bb)
             lms += get_legal_moves_from(piece, board, right_bit_index)
             piece_bb = piece_bb & ~Square(right_bit_index).toBoard()
-    return lms
 
+    return lms
 
 def get_legal_moves_from_count(piece, board, from_):
     # used to develop a perf statistics
@@ -206,9 +234,12 @@ def negamaxAB(board, alpha, beta, depth=0):
 
     factor = - board.color_to_play * 2 + 1
     lms = get_legal_moves(board)
-    maxScore = -9999999999
+    maxScore = -123456789
     for m in lms:
-        score = factor * negamaxAB(board.move(m), -beta, -alpha, depth - 1)
+        new_board = board.move(m)
+        if king_in_check(new_board, False):
+            continue
+        score = factor * negamaxAB(new_board, -beta, -alpha, depth - 1)
 
         if score > maxScore:
             maxScore = score
@@ -232,18 +263,31 @@ def get_best_moveAB(board, depth=1):
     # if board.hash_value in board.transposition_table and board.transposition_table[board.hash_value]['depth'] >= depth:
     #     return board.transposition_table[board.hash_value]['move'], board.transposition_table[board.hash_value]['score']
 
+    max_score = -123456789
+    best_move = None
     for m in lms:
-        score = factor * negamaxAB(board.move(m), -beta, -alpha, depth - 1)
-        lbs.append(score)
+        new_board = board.move(m)
+        if king_in_check(new_board, False):
+            continue
+        score = factor * negamaxAB(new_board, -beta, -alpha, depth - 1)
         
-    index = np.argmax([m for m in lbs])
-    
+        if score > max_score:
+            max_score = score
+            best_move = m
+                
     # [ALO-ZORBRIST] zorbrist makes everything too slow
     # board.add_to_transpotition_table(lms[index], depth, lbs[index])
-    return lms[index], factor*lbs[index]
+    return best_move, max_score
 
 def get_random_move(board, depth=1, debug=False, debug_str=""):
     lms = get_legal_moves(board)
+    lms_filtered = []
+    for m in lms:
+        new_board = board.move(m)
+        if king_in_check(new_board, False):
+            continue
+        lms_filtered.append(m)
+        
     if lms:
         index = random.randint(0, len(lms) - 1)
         return lms[index]

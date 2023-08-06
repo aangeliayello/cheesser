@@ -12,7 +12,7 @@ class Move(object):
 
     def __str__(self):
         castle_str = ''
-        if self.castleSide:
+        if self.castleSide is not None:
             castle_str = ", " + self.castleSide.name
         return self.piece.name + ": " + "(" + str(self.from_) + ", " + str(self.to) + castle_str + ")"
 

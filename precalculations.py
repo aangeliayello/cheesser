@@ -356,17 +356,17 @@ else:
         sq_bb = Square(square).toBoard()
         for occupancy in range(256):
             occupancy_bb = np.uint64(occupancy)
-            for shift in range(6):
+            for shift in range(8):
                 # White
-                shifted_white_sqr_bb = sq_bb << np.uint64(8*(shift+1)) # start in 2nd rank and finish in the 7th rank
-                shifted_white_occupancy = occupancy_bb << np.uint64(8*(shift+2)) # only care about the occupancy in the rank infront of the pawn
+                shifted_white_sqr_bb = sq_bb << np.uint64(8*(shift)) # start in 2nd rank and finish in the 7th rank
+                shifted_white_occupancy = occupancy_bb << np.uint64(8*(shift+1)) # only care about the occupancy in the rank infront of the pawn
                 key = (shifted_white_sqr_bb, shifted_white_occupancy)
                 white_pawn_attack_moves.append([key,get_pawn_attacks_white(shifted_white_sqr_bb, shifted_white_occupancy)])
 
-            for shift in range(6):
+            for shift in range(8):
                 # Black
-                shifted_black_sqr_bb = sq_bb << np.uint64(8*(7 - shift -1)) #start in the 7th rank and finish in the 2nd rank
-                shifted_black_occupancy = occupancy_bb << np.uint64(8 * (7 - shift - 2))
+                shifted_black_sqr_bb = sq_bb << np.uint64(8*(7 - shift)) #start in the 7th rank and finish in the 2nd rank
+                shifted_black_occupancy = occupancy_bb << np.uint64(8 * (7 - shift - 1))
                 key = (shifted_black_sqr_bb, shifted_black_occupancy)
                 black_pawn_attack_moves.append([key, get_pawn_attacks_black(shifted_black_sqr_bb, shifted_black_occupancy)])
 
