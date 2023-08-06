@@ -1,0 +1,46 @@
+{
+  "type": "challenge",
+  "challenge": {
+    "id": "VjLhLS4Y",
+    "url": "https://lichess.org/VjLhLS4Y",
+    "status": "created",
+    "challenger": {
+      "id": "aangeli",
+      "name": "aangeli",
+      "title": null,
+      "rating": 1500,
+      "provisional": true,
+      "online": true,
+      "lag": 4
+    },
+    "destUser": {
+      "id": "cheesser_the_bot",
+      "name": "Cheesser_The_Bot",
+      "title": "BOT",
+      "rating": 2000,
+      "provisional": true,
+      "online": true,
+      "lag": 4
+    },
+    "variant": {
+      "key": "standard",
+      "name": "Standard",
+      "short": "Std"
+    },
+    "rated": false,
+    "speed": "correspondence",
+    "timeControl": {
+      "type": "unlimited"
+    },
+    "color": "random",
+    "finalColor": "white",
+    "perf": {
+      "icon": "",
+      "name": "Correspondence"
+    }
+  },
+  "compat": {
+    "bot": true,
+    "board": true
+  }
+}
