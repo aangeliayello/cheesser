@@ -2,12 +2,12 @@ from enum import IntEnum
 import numpy as np
 
 class Move(object):
-    def __init__(self, piece, from_, to, promotion=None, en_passant=False, castleSide=None):
+    def __init__(self, piece, from_, to, promotion=None, en_passant_capture=False, castleSide=None):
         self.from_ = from_
         self.to = to
         self.piece = piece
         self.promotion = promotion
-        self.en_passant = en_passant
+        self.en_passant_capture = en_passant_capture
         self.castleSide = castleSide
 
     def __str__(self):

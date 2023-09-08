@@ -5,6 +5,8 @@ from classes import Move, Square, Piece, Color, CastleSide
 from piece_heatmap import piece_to_value
 from evaluation import evaluate_board, board_evaluation_move_correction
 
+TRANSPOSITION_TABLE = {}
+NODES_COUNTER = 0
 class Board(object):
     def __init__(self):
         self.pieces = np.zeros((2, 6), dtype=np.uint64)  
@@ -13,9 +15,9 @@ class Board(object):
         self.color_to_play = Color.WHITE  
         self.en_passant_sqr = None
         self.castling_available = np.ones((2, 2), dtype=bool)
+        self.keep_board_history = False
         self.board_history = ""
         self.hash_value = None
-        self.transposition_table = {}
         self.eval = 0
 
     def __str__(self):
@@ -34,7 +36,7 @@ class Board(object):
 
         board = np.flip(board.reshape((8, 8)), 0)
 
-        return str(board)
+        return str(board)+"\n Color: "+str(self.color_to_play) + "\n Castling:" + str(self.castling_available.flatten()) + "\n En Passant: " + str(self.en_passant_sqr)
 
     def base_board(self):
         self.color_to_play = Color.WHITE  # Color to move
@@ -84,8 +86,7 @@ class Board(object):
             0b1111111111111111000000000000000000000000000000001111111111111111)
 
         self.eval = evaluate_board(self)
-        # [ALO-ZORBRIST] zorbrist makes everything too slow
-        #self.hash_value = self.zobrist_hash()
+        self.hash_value = self.zobrist_hash()
 
     def move(self, m, score = None):
         board = Board()
@@ -93,38 +94,70 @@ class Board(object):
         board.all_pieces_per_color = np.copy(self.all_pieces_per_color)
         board.all_pieces = np.copy(self.all_pieces)
         board.castling_available = np.copy(self.castling_available)
-        board.transposition_table = self.transposition_table.copy()
         board.color_to_play = self.color_to_play
+        board.keep_board_history = self.keep_board_history
+        zobrist_hash_number = self.hash_value
 
-        score_str= ""
-        if score:
-            score_str = "_(" + str(round(score, 3)) + ")"
-        event = "[" + self.color_to_play.name + "_" + m.piece.name + "_" + str(m.from_) + "_" + str(m.to) + score_str + "]"
-        board.board_history = self.board_history + event
+        if board.keep_board_history:
+            score_str= ""
+            if score:
+                score_str = "_(" + str(round(score, 3)) + ")"
+            event = "[" + self.color_to_play.name + "_" + m.piece.name + "_" + str(m.from_) + "_" + str(m.to) + score_str + "]"
+            board.board_history = self.board_history + event
 
+        opposite_color = board.color_to_play.flip()
         bb_not_from = ~ Square(m.from_).toBoard()
         bb_to = Square(m.to).toBoard()
 
-        # En Passant
+        # En Passant Square
+        if self.en_passant_sqr is not None:
+            # clear en_passant in zobrist hash if initial board had an en-passant
+            zobrist_hash_number ^= ZOBRIST_TABLE[("EnPassant", SQUARE_TO_FILE[self.en_passant_sqr])]
+
         if m.piece == Piece.PAWN and abs(m.from_ - m.to) == 16:
             board.en_passant_sqr = m.from_ + (1 - 2*board.color_to_play)*8
+            zobrist_hash_number ^= ZOBRIST_TABLE[("EnPassant", SQUARE_TO_FILE[board.en_passant_sqr])]
         else:
             board.en_passant_sqr = None
-            
+
+        # En Passant Capture
+        if m.en_passant_capture:
+            if board.color_to_play == Color.WHITE:
+                capture_sqr = bb_to >> np.uint(8)  # down from the 'to' sqr
+            else:
+                capture_sqr = bb_to << np.uint(8)  # up from the 'to' sqr
+            board.pieces[opposite_color][Piece.PAWN] = board.pieces[opposite_color][Piece.PAWN] & ~capture_sqr
+            board.all_pieces_per_color[opposite_color] = board.all_pieces_per_color[opposite_color] & ~capture_sqr
+            zobrist_hash_number ^= ZOBRIST_TABLE[("Piece", opposite_color, Piece.PAWN, right_bit_map(capture_sqr))]
+
+        # Promotion of Pawn
+        if m.promotion is not None:
+            # clear pawn
+            board.pieces[board.color_to_play][Piece.PAWN] = board.pieces[board.color_to_play][Piece.PAWN] & ~bb_to
+            zobrist_hash_number ^= ZOBRIST_TABLE[("Piece", board.color_to_play, Piece.PAWN, m.to)]
+
+            # add promotion piece
+            board.pieces[board.color_to_play][m.promotion] = board.pieces[board.color_to_play][m.promotion] | bb_to
+            zobrist_hash_number ^= ZOBRIST_TABLE[("Piece", board.color_to_play, m.promotion, m.to)]
+
+
         # Same color
         board.pieces[board.color_to_play][m.piece] = (board.pieces[board.color_to_play][m.piece] & bb_not_from) | bb_to
         board.all_pieces_per_color[board.color_to_play] = (board.all_pieces_per_color[board.color_to_play] & bb_not_from) | bb_to
+        zobrist_hash_number ^= ZOBRIST_TABLE[("Piece", board.color_to_play, m.piece, m.from_)]
+        zobrist_hash_number ^= ZOBRIST_TABLE[("Piece", board.color_to_play, m.piece, m.to)]
 
         # All color joint bb
         board.all_pieces = (board.all_pieces & bb_not_from) | bb_to
 
-        # Capture
-        opposite_color = board.color_to_play.flip()
-        isCapture = bb_to & board.all_pieces_per_color[opposite_color]
-
-        if isCapture:
+        # Capture (Non-En-Passant)
+        if bb_to & board.all_pieces_per_color[opposite_color]:
             for piece in Piece:
-                board.pieces[opposite_color][piece] = board.pieces[opposite_color][piece] & ~bb_to
+                if board.pieces[opposite_color][piece] & bb_to:
+                    board.pieces[opposite_color][piece] = board.pieces[opposite_color][piece] & ~bb_to
+                    zobrist_hash_number ^= ZOBRIST_TABLE[("Piece", opposite_color, piece, m.to)]
+                    break
+
             board.all_pieces_per_color[opposite_color] = board.all_pieces_per_color[opposite_color] & ~bb_to
 
         delta_castling_rights = 0
@@ -138,21 +171,6 @@ class Board(object):
             elif board.castling_available[board.color_to_play][CastleSide.KingSide]:
                 board.castling_available[board.color_to_play][CastleSide.KingSide] = m.from_ != 7+56*board.color_to_play
             delta_castling_rights = board.castling_available[board.color_to_play].sum() - self.castling_available[board.color_to_play].sum()
-        # En Passant Capture
-        if m.en_passant:
-            if board.color_to_play == Color.WHITE:
-                capture_sqr = bb_to >> np.uint(8) # down from the 'to' sqr
-            else:
-                capture_sqr = bb_to << np.uint(8) # up from the 'to' sqr
-            board.pieces[opposite_color][Piece.PAWN] = board.pieces[opposite_color][Piece.PAWN] & ~capture_sqr
-            board.all_pieces_per_color[opposite_color] = board.all_pieces_per_color[opposite_color] & ~capture_sqr
-            
-        # Promotion of Pawn
-        if m.promotion is not None:
-            # clear pawn 
-            board.pieces[board.color_to_play][Piece.PAWN] = board.pieces[board.color_to_play][Piece.PAWN] & ~bb_to  
-            # add promotion piece          
-            board.pieces[board.color_to_play][m.promotion] = board.pieces[board.color_to_play][m.promotion] | bb_to
 
         if m.castleSide is not None: # No need to take care of the King, since already the from_-to move it
             #TODO: consider captures of the rook, which would also null out the castling  
@@ -169,19 +187,30 @@ class Board(object):
             board.pieces[board.color_to_play][Piece.ROOK] &= rook_from_bb_inv
             board.all_pieces_per_color[board.color_to_play] &= rook_from_bb_inv
             board.all_pieces &= rook_from_bb_inv
-            
+            zobrist_hash_number ^= ZOBRIST_TABLE[("Piece", board.color_to_play, Piece.ROOK, rook_from.index)]
+
             # Add rook in King initial possit
             rook_to_bb = rook_to.toBoard()
             board.pieces[board.color_to_play][Piece.ROOK] |= rook_to_bb
             board.all_pieces_per_color[board.color_to_play] |=  rook_to_bb
             board.all_pieces |=  rook_to_bb
+            zobrist_hash_number ^= ZOBRIST_TABLE[("Piece", board.color_to_play, Piece.ROOK, rook_to.index)]
             
         board.color_to_play = opposite_color
+        zobrist_hash_number ^= ZOBRIST_TABLE[("Color", Color.BLACK)] # To add or remove is the same opperation
+
+        # Update zobrist hash for castling rights:
+        if np.any(self.castling_available != board.castling_available):
+            for castling_side in CastleSide:
+                if self.castling_available[board.color_to_play][castling_side] != board.castling_available[board.color_to_play][castling_side]:
+                    zobrist_hash_number ^= ZOBRIST_TABLE[("Castling", board.color_to_play, castling_side)]
+
         board.eval += self.eval + board_evaluation_move_correction(self.color_to_play, \
                                                         self.all_pieces_per_color[self.color_to_play.flip()], \
                                                         self.pieces[self.color_to_play.flip()], \
                                                         m, delta_castling_rights)
-        #board.hash_value = board.zobrist_hash()
+        board.hash_value = zobrist_hash_number
+
         return board
 
     def from_printed_board(self, pboard, color_to_play):
@@ -207,6 +236,7 @@ class Board(object):
             self.pieces[piece_color][lettter_to_piece[letter.lower()]] |= Square(i).toBoard()
             self.all_pieces_per_color[piece_color] |= Square(i).toBoard()
             self.all_pieces |= Square(i).toBoard()
+            self.hash_value = self.zobrist_hash()
 
     def zobrist_hash(self):
         zobrist_hash_number = np.uint64(0)
@@ -231,7 +261,7 @@ class Board(object):
         for color in Color:
             for castling_side in CastleSide:
                 if self.castling_available[color][castling_side]:
-                    zobrist_hash_number ^= ZOBRIST_TABLE[("Caslting",  color, castling_side)]
+                    zobrist_hash_number ^= ZOBRIST_TABLE[("Castling",  color, castling_side)]
 
         if self.en_passant_sqr:
             zobrist_hash_number ^= ZOBRIST_TABLE[("EnPassant", SQUARE_TO_FILE[self.en_passant_sqr])]
@@ -239,8 +269,10 @@ class Board(object):
         return zobrist_hash_number
 
     def add_to_transpotition_table(self, move, depth, score):
-        if (self.hash_value not in self.transposition_table) or self.transposition_table[self.hash_value]['depth'] <= depth:
-            self.transposition_table[self.hash_value] = \
+        global TRANSPOSITION_TABLE
+        global NODES_COUNTER
+        if (self.hash_value not in TRANSPOSITION_TABLE) or TRANSPOSITION_TABLE[self.hash_value]['depth'] <= depth:
+            TRANSPOSITION_TABLE[self.hash_value] = \
                 {
                     "depth": depth,
                     "move": move,

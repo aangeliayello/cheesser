@@ -1,7 +1,7 @@
 import numpy as np
 from board import Board
 from classes import Color, Piece
-from moves import get_best_moveAB, get_legal_moves, get_legal_moves_from
+from moves import get_best_moveAB, get_pseudo_legal_moves, get_legal_moves_from
 from utils import  get_right_bit_index
 
 pboard = [['r' '_' 'b' 'q' 'k' '_' '_' 'r'],

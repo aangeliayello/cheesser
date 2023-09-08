@@ -6,9 +6,11 @@ from evaluation import evaluate_board
 from precalculations import Files, Ranks, KING_MOVES, KNIGHT_MOVES, FILE_MOVES, RANK_MOVES, FILE_MASK, RANK_MASK, \
     DIAGONAL_MOVES, DIAGONAL_MASK, ANTI_DIAGONAL_MOVES, ANTI_DIAGONAL_MASK, BLACK_PAWN_ATTACK_MOVES, BLACK_PAWN_MOVES, \
     WHITE_PAWN_ATTACK_MOVES, WHITE_PAWN_MOVES
-from board import Board
+from board import Board, TRANSPOSITION_TABLE
 from classes import Move, Square, Piece, Color, CastleSide
 
+COLLITION_COUNTER = 0
+NODES_COUNT = 0
 
 def get_king_moves(bb):
     return KING_MOVES[bb]
@@ -123,12 +125,13 @@ def is_square_attacked(sq_bb, board: Board, from_color_to_play_perspective = Tru
 
 def get_legal_moves_from(piece, board, from_):
     sq_bb = Square(from_).toBoard()
+    list_of_moves = []
     if piece == Piece.PAWN:
         if board.en_passant_sqr:
             en_passant_bb = Square(board.en_passant_sqr).toBoard()
             en_passant_attacks = get_pawn_attacks_white(sq_bb, en_passant_bb)
             if en_passant_attacks:
-                yield Move(piece, from_, board.en_passant_sqr, en_passant=True)
+                list_of_moves.append(Move(piece, from_, board.en_passant_sqr, en_passant_capture=True))
 
         if board.color_to_play == Color.WHITE:
             simple_moves = get_pawn_moves_white(sq_bb, board.all_pieces)
@@ -137,18 +140,19 @@ def get_legal_moves_from(piece, board, from_):
             simple_moves = get_pawn_moves_black(sq_bb, board.all_pieces)
             attack_moves = get_pawn_attacks_black(sq_bb, board.all_pieces_per_color[Color.WHITE])
 
+        list_of_moves = []
         while attack_moves:
             right_bit_index = get_right_bit_index(attack_moves)
             rbi_bb = Square(right_bit_index).toBoard()
 
             if bool(rbi_bb & Ranks[7 * (1 - board.color_to_play)]):
-                yield Move(piece, from_, right_bit_index, promotion=Piece.QUEEN)
-                yield Move(piece, from_, right_bit_index, promotion=Piece.KNIGHT)
-                yield Move(piece, from_, right_bit_index, promotion=Piece.ROOK)
-                yield Move(piece, from_, right_bit_index, promotion=Piece.BISHOP)
-            else:
-                yield Move(piece, from_, right_bit_index)
+                list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.QUEEN))
+                list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.KNIGHT))
+                list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.ROOK))
+                list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.BISHOP))
 
+            else:
+                list_of_moves.append(Move(piece, from_, right_bit_index))
             attack_moves = attack_moves & ~rbi_bb
 
         while simple_moves:
@@ -156,14 +160,15 @@ def get_legal_moves_from(piece, board, from_):
             rbi_bb = Square(right_bit_index).toBoard()
 
             if bool(rbi_bb & Ranks[7 * (1 - board.color_to_play)]):
-                yield Move(piece, from_, right_bit_index, promotion=Piece.QUEEN)
-                yield Move(piece, from_, right_bit_index, promotion=Piece.KNIGHT)
-                yield Move(piece, from_, right_bit_index, promotion=Piece.ROOK)
-                yield Move(piece, from_, right_bit_index, promotion=Piece.BISHOP)
+                list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.QUEEN))
+                list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.KNIGHT))
+                list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.ROOK))
+                list_of_moves.append(Move(piece, from_, right_bit_index, promotion=Piece.BISHOP))
+
             else:
-                yield Move(piece, from_, right_bit_index)
+                list_of_moves.append(Move(piece, from_, right_bit_index))
             simple_moves = simple_moves & ~rbi_bb
-        return
+        return list_of_moves
     elif piece == Piece.ROOK:
         moves = get_rook_moves(sq_bb, board.all_pieces, board.all_pieces_per_color[board.color_to_play])
     elif piece == Piece.BISHOP:
@@ -176,107 +181,151 @@ def get_legal_moves_from(piece, board, from_):
         moves = get_king_moves(sq_bb) & ~ board.all_pieces_per_color[board.color_to_play]
         # check if castling is allowed
         king_side_allowed = (board.castling_available[board.color_to_play][CastleSide.KingSide] and \
-            (board.all_pieces & (np.uint8(96) if  board.color_to_play == Color.WHITE else np.uint64(6917529027641081856)) == 0))
+            (board.all_pieces & np.uint8(96) == 0))
         queen_side_allowed = (board.castling_available[board.color_to_play][CastleSide.QueenSide] and \
-            (board.all_pieces & (np.uint8(14) if  board.color_to_play == Color.WHITE else np.uint64(864691128455135232)) == 0))
-        if king_side_allowed or queen_side_allowed:
+            (board.all_pieces & np.uint8(14) == 0))
+        if king_side_allowed and queen_side_allowed:
             is_king_in_check = king_in_check(board)
             if king_side_allowed and \
                 (not is_king_in_check) and \
                 (not is_square_attacked(Square(from_ +1).toBoard(), board)) and \
                 (not is_square_attacked(Square(from_ +2).toBoard(), board)):
                 # check if squares are attacked
-                yield Move(Piece.KING, from_, from_ + 2, castleSide=CastleSide.KingSide)
+                list_of_moves.append(Move(Piece.KING, from_, from_ + 2, castleSide=CastleSide.KingSide))
             if queen_side_allowed and \
                 (not is_king_in_check) and \
                 (not is_square_attacked(Square(from_ -1).toBoard(), board)) and \
                 (not is_square_attacked(Square(from_ -2).toBoard(), board)):
-                yield Move(Piece.KING, from_, from_ - 2, castleSide=CastleSide.QueenSide)
+                list_of_moves.append(Move(Piece.KING, from_, from_ - 2, castleSide=CastleSide.QueenSide))
 
     while moves:
         right_bit_index = get_right_bit_index(moves)
         rbi_bb = Square(right_bit_index).toBoard()
-        yield Move(piece, from_, right_bit_index)
+        list_of_moves.append(Move(piece, from_, right_bit_index))
         moves = moves & ~rbi_bb
 
-def get_legal_moves(board):
+    return list_of_moves
+
+def get_pseudo_legal_moves(board):
+    lms = []
     for piece in [Piece.KNIGHT, Piece.BISHOP, Piece.QUEEN, Piece.ROOK, Piece.PAWN, Piece.KING]:
         piece_bb = board.pieces[board.color_to_play][piece]
         while piece_bb:
             right_bit_index = get_right_bit_index(piece_bb)
-            yield from get_legal_moves_from(piece, board, right_bit_index)
+            lms += get_legal_moves_from(piece, board, right_bit_index)
             piece_bb = piece_bb & ~Square(right_bit_index).toBoard()
 
-def get_legal_moves_from_count(piece, board, from_):
-    # used to develop a perf statistics
-    return None
+    return lms
 
-def get_legal_moves_count(board):
-    # used to develop a perf statistics
-    None
+def get_legal_moves(board):
+    def check(m):
+        return not king_in_check(board.move(m), False)
 
+    plms = get_pseudo_legal_moves(board)
+
+    return [m for m in plms if check(m)]
 
 def negamaxAB(board, alpha, beta, depth=0):
     # [ALO-ZORBRIST] zorbrist makes everything too slow
-    # if board.hash_value in board.transposition_table and board.transposition_table[board.hash_value]['depth'] >= depth:
-    #     return board.transposition_table[board.hash_value]['move'], board.transposition_table[board.hash_value]['score']
+    if board.hash_value in TRANSPOSITION_TABLE and TRANSPOSITION_TABLE[board.hash_value]['depth'] >= depth:
+        global COLLITION_COUNTER
+        COLLITION_COUNTER += 1
+        return TRANSPOSITION_TABLE[board.hash_value]['score']
 
     if depth < 1:
+        global NODES_COUNT
+        NODES_COUNT += 1
         return board.eval
 
     factor = - board.color_to_play * 2 + 1
-    lms = get_legal_moves(board)
+    lms = get_pseudo_legal_moves(board)
     max_score = -123456789
-    new_move_board_list = [(m, board.move(m)) for m in lms]
-    new_move_board_list.sort(key = lambda m_board: m_board[1].eval*factor, reverse=True)
-    for mb in new_move_board_list:
-
-        if king_in_check(mb[1], False):
+    best_move = None
+    for m in lms:
+        new_board = board.move(m)
+        if king_in_check(new_board, False):
             continue
-        score = factor * negamaxAB(mb[1], -beta, -alpha, depth - 1)
+        score = factor * negamaxAB(new_board, -beta, -alpha, depth - 1)
 
         if score > max_score:
             max_score = score
+            best_move = m
             if score > alpha:
                 alpha = score
-                if alpha >= beta:
-                    break
+                if alpha >= beta: break
                 
     # [ALO-ZORBRIST] zorbrist makes everything too slow
-    # board.add_to_transpotition_table(m, depth, factor*maxScore)
+    board.add_to_transpotition_table(best_move, depth, factor*max_score)
+
     return factor * max_score
 
 
 def get_best_moveAB(board, depth=1):
     factor = - board.color_to_play * 2 + 1
-    lms = get_legal_moves(board)
+    lms = get_pseudo_legal_moves(board)
     alpha = -99999999
     beta = 99999999
+    global COLLITION_COUNTER
+    global NODES_COUNT
+    NODES_COUNT = 0
 
     # [ALO-ZORBRIST] zorbrist makes everything too slow
-    # if board.hash_value in board.transposition_table and board.transposition_table[board.hash_value]['depth'] >= depth:
-    #     return board.transposition_table[board.hash_value]['move'], board.transposition_table[board.hash_value]['score']
+    if board.hash_value in TRANSPOSITION_TABLE and TRANSPOSITION_TABLE[board.hash_value]['depth'] >= depth:
+        return TRANSPOSITION_TABLE[board.hash_value]['move'], TRANSPOSITION_TABLE[board.hash_value]['score']
 
     max_score = -123456789
     best_move = None
-
-    new_move_board_list = [(m, board.move(m)) for m in lms]
-    new_move_board_list.sort(key=lambda m_board: m_board[1].eval * factor, reverse=True)
-    for mb in new_move_board_list:
-        if king_in_check(mb[1], False):
+    for m in lms:
+        new_board = board.move(m)
+        if king_in_check(new_board, False):
             continue
-        score = factor * negamaxAB(mb[1], -beta, -alpha, depth - 1)
+        score = factor * negamaxAB(new_board, -beta, -alpha, depth - 1)
         
         if score > max_score:
             max_score = score
-            best_move = mb[0]
-                
+            best_move = m
+
     # [ALO-ZORBRIST] zorbrist makes everything too slow
-    # board.add_to_transpotition_table(lms[index], depth, lbs[index])
+    board.add_to_transpotition_table(best_move, depth, max_score)
+    print(NODES_COUNT, COLLITION_COUNTER)
     return best_move, max_score
 
+
+def get_best_moveAB(board, depth=1):
+    factor = - board.color_to_play * 2 + 1
+    lms = get_pseudo_legal_moves(board)
+    alpha = -99999999
+    beta = 99999999
+    global COLLITION_COUNTER
+    global NODES_COUNT
+    NODES_COUNT = 0
+
+    # [ALO-ZORBRIST] zorbrist makes everything too slow
+    if board.hash_value in TRANSPOSITION_TABLE and TRANSPOSITION_TABLE[board.hash_value]['depth'] >= depth:
+        return TRANSPOSITION_TABLE[board.hash_value]['move'], TRANSPOSITION_TABLE[board.hash_value]['score']
+
+    max_score = -123456789
+    best_move = None
+    scores_moves = []
+    for m in lms:
+        new_board = board.move(m)
+        if king_in_check(new_board, False):
+            continue
+        score = factor * negamaxAB(new_board, -beta, -alpha, depth - 1)
+
+        if score > max_score:
+            max_score = score
+            best_move = m
+
+
+    # [ALO-ZORBRIST] zorbrist makes everything too slow
+    board.add_to_transpotition_table(best_move, depth, max_score)
+    print(NODES_COUNT, COLLITION_COUNTER)
+    return best_move, max_score
+
+
 def get_random_move(board, depth=1, debug=False, debug_str=""):
-    lms = get_legal_moves(board)
+    lms = get_pseudo_legal_moves(board)
     lms_filtered = []
     for m in lms:
         new_board = board.move(m)
@@ -305,7 +354,7 @@ def negamaxAB_parallel(board, alpha, beta, depth=0):
         return board.eval
 
     factor = -board.color_to_play * 2 + 1
-    lms = get_legal_moves(board)
+    lms = get_pseudo_legal_moves(board)
 
     with Pool(cpu_count()) as pool:
         args_list = [(board, move, depth, factor, -beta, -alpha) for move in lms]
@@ -321,7 +370,7 @@ def negamaxAB_parallel(board, alpha, beta, depth=0):
 
 def get_best_moveAB_parallel(board, depth=1):
     factor = -board.color_to_play * 2 + 1
-    lms = get_legal_moves(board)
+    lms = get_pseudo_legal_moves(board)
 
     with Pool(cpu_count()) as pool:
         args_list = [(board, move, depth, factor, -99999999, 99999999) for move in lms]
@@ -341,7 +390,7 @@ def negamax(board, depth=0, debug=False, debug_str=""):
             print(debug_str, "Score: ", evaluate_board(board), "   ---   Board: \n", board)
         return evaluate_board(board)
     factor = - board.color_to_play * 2 + 1
-    lms = get_legal_moves(board)
+    lms = get_pseudo_legal_moves(board)
 
     scores = [factor * negamax(board.move(m), depth - 1, debug, debug_str[0] * (len(debug_str) + 2)) for m in lms]
     index = np.argmax(scores)
@@ -354,7 +403,7 @@ def negamax(board, depth=0, debug=False, debug_str=""):
 
 def get_best_move(board, depth=1, debug=False, debug_str=""):
     factor = - board.color_to_play * 2 + 1
-    lms = get_legal_moves(board)
+    lms = get_pseudo_legal_moves(board)
     lbs = []
     for m in lms:
         print(debug_str, "Move: ", m)

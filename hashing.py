@@ -31,4 +31,5 @@ zobrist_table.update({
 })
 
 # Convert to a NumPy array for faster indexing
-ZOBRIST_TABLE = np.array([zobrist_table[key] for key in sorted(zobrist_table.keys())])
+#ZOBRIST_TABLE = np.array([zobrist_table[key] for key in sorted(zobrist_table.keys())])
+ZOBRIST_TABLE = zobrist_table

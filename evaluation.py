@@ -47,7 +47,7 @@ def board_evaluation_move_correction(color: Color, oppo_all_pieces: np.uint64, o
     # check if capture
     en_passant_capture_value = 0
     opposite_color = color.flip()
-    if move.en_passant:
+    if move.en_passant_capture:
         captured_pawn_sqr = move.to + (-8 if color == Color.WHITE else +8)
         en_passant_capture_value = piece_to_value(opposite_color, Piece.PAWN, captured_pawn_sqr)
         
