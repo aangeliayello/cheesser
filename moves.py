@@ -1,13 +1,12 @@
 import random
-import itertools
-from utils import count_bits, get_right_bit_index
+from utils import get_right_bit_index, print_winning_color
 import numpy as np
 from evaluation import evaluate_board
-from precalculations import Files, Ranks, KING_MOVES, KNIGHT_MOVES, FILE_MOVES, RANK_MOVES, FILE_MASK, RANK_MASK, \
+from precalculations import Ranks, KING_MOVES, KNIGHT_MOVES, FILE_MOVES, RANK_MOVES, FILE_MASK, RANK_MASK, \
     DIAGONAL_MOVES, DIAGONAL_MASK, ANTI_DIAGONAL_MOVES, ANTI_DIAGONAL_MASK, BLACK_PAWN_ATTACK_MOVES, BLACK_PAWN_MOVES, \
     WHITE_PAWN_ATTACK_MOVES, WHITE_PAWN_MOVES
 from board import Board, TRANSPOSITION_TABLE
-from classes import Move, Square, Piece, Color, CastleSide
+from classes import Move, Square, Piece, Color, CastleSide, KingStatus, CHECK_MATE_SCORE
 
 COLLITION_COUNTER = 0
 NODES_COUNT = 0
@@ -52,16 +51,6 @@ def get_queen_move(bb, occupancy, same_color_occupancy):
     return get_bishop_move(bb, occupancy, same_color_occupancy) | get_rook_moves(bb, occupancy, same_color_occupancy)
 
 
-def get_pawn_attack_en_passant_white(bb, opposite_color_occunpancy):
-    # p_pp
-    # ____
-    # _pP_
-
-    # TODO
-
-    return None
-
-
 def get_pawn_attacks_white(bb, opposite_color_occunpancy):
     clean_occupancy = opposite_color_occunpancy & (RANK_MASK[bb] << np.uint64(8))
     return WHITE_PAWN_ATTACK_MOVES[(bb, clean_occupancy)]
@@ -81,15 +70,6 @@ def get_pawn_moves_black(bb, occupancy):
     clean_occupancy = occupancy & FILE_MASK[bb]
     return BLACK_PAWN_MOVES[(bb, clean_occupancy)]
 
-def king_in_check(board: Board, from_color_to_play_perspective = True):
-    if from_color_to_play_perspective: 
-        current_color = board.color_to_play        
-    else: 
-        current_color = board.color_to_play.flip()
-        
-    king_bb = board.pieces[current_color][Piece.KING]
-    
-    return is_square_attacked(king_bb, board, from_color_to_play_perspective)
 
 def is_square_attacked(sq_bb, board: Board, from_color_to_play_perspective = True):
     # assume the king is the attacking piece, then if it can attack the respective pieces then the king is attacked.
@@ -122,6 +102,43 @@ def is_square_attacked(sq_bb, board: Board, from_color_to_play_perspective = Tru
         return True
 
     return False
+
+def get_king_status(board: Board, from_color_to_play_perspective=True):
+    if from_color_to_play_perspective:
+        current_color = board.color_to_play
+    else:
+        current_color = board.color_to_play.flip()
+
+    king_bb = board.pieces[current_color][Piece.KING]
+
+    if king_bb == 0:
+        king_status = KingStatus.NoKing
+    else:
+        if is_square_attacked(king_bb, board, from_color_to_play_perspective):
+            king_status = KingStatus.InCheck
+        else:
+            king_status = KingStatus.NotInCheck
+
+    return king_status
+
+
+def game_status(board):
+
+    current_king_status = get_king_status(board)
+    oposite_king_status = get_king_status(board, False)
+
+    if current_king_status == KingStatus.NoKing:
+        print_winning_color(board.color_to_play.flip())
+        raise Exception(board.color_to_play.__str__() + " has no King, thus, " + board.color_to_play.flip().__str__() + " wins!")
+
+    if oposite_king_status == KingStatus.NoKing:
+        print_winning_color(board.color_to_play)
+        raise Exception(board.color_to_play.flip().__str__() + " has no King, thus, " + board.color_to_play.__str__() + " wins!")
+
+    if oposite_king_status == KingStatus.InCheck:
+        print_winning_color(board.color_to_play)
+        raise Exception(board.color_to_play.flip().__str__() + " has its King in check and it is " + board.color_to_play.__str__() + " to play, thus " + board.color_to_play.__str__() + ' wins!')
+
 
 def get_legal_moves_from(piece, board, from_):
     sq_bb = Square(from_).toBoard()
@@ -185,15 +202,15 @@ def get_legal_moves_from(piece, board, from_):
         queen_side_allowed = (board.castling_available[board.color_to_play][CastleSide.QueenSide] and \
             (board.all_pieces & np.uint8(14) == 0))
         if king_side_allowed and queen_side_allowed:
-            is_king_in_check = king_in_check(board)
+            king_status = get_king_status(board)
             if king_side_allowed and \
-                (not is_king_in_check) and \
+                (king_status == KingStatus.NotInCheck) and \
                 (not is_square_attacked(Square(from_ +1).toBoard(), board)) and \
                 (not is_square_attacked(Square(from_ +2).toBoard(), board)):
                 # check if squares are attacked
                 list_of_moves.append(Move(Piece.KING, from_, from_ + 2, castleSide=CastleSide.KingSide))
             if queen_side_allowed and \
-                (not is_king_in_check) and \
+                (king_status == KingStatus.NotInCheck) and \
                 (not is_square_attacked(Square(from_ -1).toBoard(), board)) and \
                 (not is_square_attacked(Square(from_ -2).toBoard(), board)):
                 list_of_moves.append(Move(Piece.KING, from_, from_ - 2, castleSide=CastleSide.QueenSide))
@@ -219,7 +236,7 @@ def get_pseudo_legal_moves(board):
 
 def get_legal_moves(board):
     def check(m):
-        return not king_in_check(board.move(m), False)
+        return not get_king_status(board.move(m), False)
 
     plms = get_pseudo_legal_moves(board)
 
@@ -239,97 +256,102 @@ def negamaxAB(board, alpha, beta, depth=0):
 
     factor = - board.color_to_play * 2 + 1
     lms = get_pseudo_legal_moves(board)
-    max_score = -123456789
+    max_score = -1 * CHECK_MATE_SCORE
     best_move = None
     for m in lms:
         new_board = board.move(m)
-        if king_in_check(new_board, False):
+        king_status = get_king_status(new_board, False)
+        if king_status == KingStatus.InCheck:
             continue
-        score = factor * negamaxAB(new_board, -beta, -alpha, depth - 1)
+        elif king_status == KingStatus.NoKing:
+            continue
+        else:
+            score = factor * negamaxAB(new_board, -beta, -alpha, depth - 1)
 
-        if score > max_score:
-            max_score = score
-            best_move = m
-            if score > alpha:
-                alpha = score
-                if alpha >= beta: break
+            if score > max_score:
+                max_score = score
+                best_move = m
+                if score > alpha:
+                    alpha = score
+                    if alpha >= beta: break
                 
-    # [ALO-ZORBRIST] zorbrist makes everything too slow
-    board.add_to_transpotition_table(best_move, depth, factor*max_score)
+    if best_move is not None: # There was a legal move
+        score_result = factor*max_score
+        board.add_to_transpotition_table(best_move, depth, score_result)
+        return score_result
+    else: # There is no legal move
+        king_status = get_king_status(board, True)
 
-    return factor * max_score
-
-
-def get_best_moveAB(board, depth=1):
-    factor = - board.color_to_play * 2 + 1
-    lms = get_pseudo_legal_moves(board)
-    alpha = -99999999
-    beta = 99999999
-    global COLLITION_COUNTER
-    global NODES_COUNT
-    NODES_COUNT = 0
-
-    # [ALO-ZORBRIST] zorbrist makes everything too slow
-    if board.hash_value in TRANSPOSITION_TABLE and TRANSPOSITION_TABLE[board.hash_value]['depth'] >= depth:
-        return TRANSPOSITION_TABLE[board.hash_value]['move'], TRANSPOSITION_TABLE[board.hash_value]['score']
-
-    max_score = -123456789
-    best_move = None
-    for m in lms:
-        new_board = board.move(m)
-        if king_in_check(new_board, False):
-            continue
-        score = factor * negamaxAB(new_board, -beta, -alpha, depth - 1)
-        
-        if score > max_score:
-            max_score = score
-            best_move = m
-
-    # [ALO-ZORBRIST] zorbrist makes everything too slow
-    board.add_to_transpotition_table(best_move, depth, max_score)
-    print(NODES_COUNT, COLLITION_COUNTER)
-    return best_move, max_score
+        # Check mate
+        if king_status == KingStatus.InCheck or king_status == KingStatus.NoKing:
+            score_result = -1 * CHECK_MATE_SCORE * factor
+            board.add_to_transpotition_table(best_move, depth, score_result)
+            return score_result
+        # Stalemate
+        elif king_status == KingStatus.NotInCheck:
+            score_result = 0
+            board.add_to_transpotition_table(best_move, depth, score_result)
+            return score_result
+        else:
+            raise Exception("Bad state")
 
 
 def get_best_moveAB(board, depth=1):
     factor = - board.color_to_play * 2 + 1
     lms = get_pseudo_legal_moves(board)
-    alpha = -99999999
-    beta = 99999999
+    alpha = -1*CHECK_MATE_SCORE
+    beta = CHECK_MATE_SCORE
     global COLLITION_COUNTER
     global NODES_COUNT
     NODES_COUNT = 0
 
-    # [ALO-ZORBRIST] zorbrist makes everything too slow
     if board.hash_value in TRANSPOSITION_TABLE and TRANSPOSITION_TABLE[board.hash_value]['depth'] >= depth:
         return TRANSPOSITION_TABLE[board.hash_value]['move'], TRANSPOSITION_TABLE[board.hash_value]['score']
 
-    max_score = -123456789
+    max_score = -1 * CHECK_MATE_SCORE
     best_move = None
-    scores_moves = []
     for m in lms:
         new_board = board.move(m)
-        if king_in_check(new_board, False):
+        king_status = get_king_status(new_board, False)
+        if king_status == KingStatus.InCheck:
             continue
-        score = factor * negamaxAB(new_board, -beta, -alpha, depth - 1)
+        elif king_status == KingStatus.NoKing:
+            continue
+        else:
+            score = factor * negamaxAB(new_board, -beta, -alpha, depth - 1)
 
-        if score > max_score:
-            max_score = score
-            best_move = m
+            if score > max_score:
+                max_score = score
+                best_move = m
 
-
-    # [ALO-ZORBRIST] zorbrist makes everything too slow
-    board.add_to_transpotition_table(best_move, depth, max_score)
     print(NODES_COUNT, COLLITION_COUNTER)
-    return best_move, max_score
 
+    if best_move is not None: # There was a legal move
+        score_result = factor * max_score
+        board.add_to_transpotition_table(best_move, depth, score_result)
+        return best_move, score_result
+    else:  # There is no legal move
+        king_status = get_king_status(board, True)
+
+        # Check mate
+        if king_status == KingStatus.InCheck or king_status == KingStatus.NoKing:
+            score_result = -1 * CHECK_MATE_SCORE * factor
+            board.add_to_transpotition_table(best_move, depth, score_result)
+            return None, score_result
+        # Stalemate
+        elif king_status == KingStatus.NotInCheck:
+            score_result = 0
+            board.add_to_transpotition_table(best_move, depth, score_result)
+            return None, score_result
+        else:
+            raise Exception("Bad state")
 
 def get_random_move(board, depth=1, debug=False, debug_str=""):
     lms = get_pseudo_legal_moves(board)
     lms_filtered = []
     for m in lms:
         new_board = board.move(m)
-        if king_in_check(new_board, False):
+        if get_king_status(new_board, False):
             continue
         lms_filtered.append(m)
         

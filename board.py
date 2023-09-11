@@ -1,8 +1,7 @@
 from utils import *
 from hashing import ZOBRIST_TABLE
 from precalculations import SQUARE_TO_FILE
-from classes import Move, Square, Piece, Color, CastleSide
-from piece_heatmap import piece_to_value
+from classes import Square, Piece, Color, CastleSide
 from evaluation import evaluate_board, board_evaluation_move_correction
 
 TRANSPOSITION_TABLE = {}

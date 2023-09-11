@@ -1,6 +1,8 @@
 from enum import IntEnum
 import numpy as np
 
+CHECK_MATE_SCORE = 999999999999
+
 class Move(object):
     def __init__(self, piece, from_, to, promotion=None, en_passant_capture=False, castleSide=None):
         self.from_ = from_
@@ -88,3 +90,8 @@ class Piece(IntEnum):
         if color == Color.WHITE:
             c = c.upper()
         return c
+
+class KingStatus(IntEnum):
+    NotInCheck = 0
+    InCheck = 1
+    NoKing = 2

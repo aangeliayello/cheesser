@@ -93,3 +93,10 @@ def castling_rook_move(color: Color, castling_side: CastleSide):
         rook_from = 56 if castling_side == CastleSide.QueenSide else 63
         rook_to = 59 if castling_side == CastleSide.QueenSide else 61
     return rook_from, rook_to
+
+def print_winning_color(winning_color):
+    print("###############################################")
+    print("###############################################")
+    print("####  " + winning_color.name + " wins!")
+    print("###############################################")
+    print("###############################################")

@@ -1,5 +1,5 @@
 from utils import *
-from classes import Piece, Color, Move, Square, CastleSide
+from classes import Piece, Color, Move, Square
 from piece_heatmap import piece_to_value
 # Center rings
 ring0 = np.uint64(0b0000000000000000000000000001100000011000000000000000000000000000)
